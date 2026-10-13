@@ -76,9 +76,28 @@ bool receiveResponse(){}
 // Menu-Driven Command-Line Interface and Client State
 // ============================================================
 
+// command line arguments,  ./client localhost 5050  = 3
 int main(int argc, char * argv[]) {
-
-
+    //TO DO: Implement the main function to handle the client logic as described in the comments below.
+    /*Check arguments
+      
+    Connect to server
+      
+    Initialize client state
+      
+    Display appropriate menu
+      
+    Read and validate user choice
+      
+    Send request
+      
+    Receive and display response
+      
+    Update login state
+      
+    Repeat until QUIT
+      
+    Close socket and exit*/
 }
 
 
