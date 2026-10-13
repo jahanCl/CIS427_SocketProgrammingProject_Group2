@@ -16,6 +16,7 @@ using namespace std;
 #define MAX_LINE 4096           //Total bytes allowed in a line
 #define RECEIVE_CHUNK 1024      //Bytes to receive at a time
 
+
 // ============================================================
 // Input Validator
 // ============================================================
@@ -34,7 +35,8 @@ bool isASCii(const string& text){
 bool validField(const string& text){}
 
 //Reads and validates when a positive integer is input into the terminal.
-bool readPositiveNumber(){}
+bool parsePositiveInteger(){}
+
 
 
 // ============================================================
@@ -53,10 +55,10 @@ int connectToServer(){}
 // Receive Buffer and Message Framing
 // ============================================================
 //Sends one protocol line.
-bool sendLine(int socketNumber, const string& line) {}
+bool sendProtocolMessage(int socketNumber, const string& line) {}
             
-//Reads exactly one newline ending protocol line from the server.
-bool receiveLine(){}
+//Return one complete protocol line without its newline.
+optional<string> receiveLine(){}   //string may or may not exist 
 
 
 // ============================================================
@@ -75,6 +77,26 @@ bool receiveResponse(){}
 // ============================================================
 // Menu-Driven Command-Line Interface and Client State
 // ============================================================
+void displayConnectedMenu() {
+    cout << "CLASS DISCUSSION BOARD\n"
+         << "1. Login\n"
+         << "2. Quit\n"
+         << "Selection:\n";
+}
+
+void displayAuthenticatedMenu() {
+    cout << "CLASS DISCUSSION BOARD\n"
+         << "1. View questions\n"
+         << "2. View question and answers\n"
+         << "3. Post a question\n"
+         << "4. Post an answer\n"
+         << "5. Logout\n"
+         << "6. Quit\n"
+         << "Selection: \n";
+}
+
+
+
 
 // command line arguments,  ./client localhost 5050  = 3
 int main(int argc, char * argv[]) {
