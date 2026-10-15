@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <regex>
 
 //#include <strings.h>
 //#include <sys/socket.h>
@@ -41,7 +42,47 @@ bool isASCii(const string& text){
 }
 
 //Validates a user provided field, like username, title, question body, or answer.
-bool validField(const string& text){}
+bool validField(const string& text){
+    char divider= '|';
+
+    size_t firstDivider= text.find(divider);
+    if(firstDivider != string::npos){  //if the divider is found in the string
+        string command= text.substr(0, firstDivider);  //get the command
+        if(command == "LOGIN"){
+            regex pattern(R"(^LOGIN\|username=([^|]+)\|password=([^\n]+)\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "LOGOUT"){
+            regex pattern(R"(^LOGOUT\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "VIEW_QUESTIONS"){
+            regex pattern(R"(^VIEW_QUESTIONS\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "VIEW_ANSWER"){
+            regex pattern(R"(^VIEW_ANSWER\|questionNumber=([^|]+)\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "POST_QUESTION"){
+            regex pattern(R"(^POST_QUESTION\|title=([^|]+)\|body=([^\n]+)\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "POST_ANSWER"){
+            regex pattern(R"(^POST_ANSWER\|questionNumber=([^|]+)\|answer=([^\n]+)\n$)");
+            return regex_match(text, pattern);
+        }
+        else if(command == "QUIT"){
+            regex pattern(R"(^QUIT\n$)");
+            return regex_match(text, pattern);
+        }
+    }
+    else
+    {
+        return false;  //if the divider is not found, return false
+    }
+    
+}
 
 //Reads and validates when a positive integer is input into the terminal.
 bool parsePositiveInteger(){}
