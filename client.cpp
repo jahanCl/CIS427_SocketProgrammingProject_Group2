@@ -394,7 +394,7 @@ int main(int argc, char * argv[]) {
                 getline(cin, title);
                 cout << "Enter Body: ";
                 getline(cin, body);
-                string cmd= "POST_QUESTION|title= " + title + "|body= " + body;
+                string cmd= "POST_QUESTION|title=" + title + "|body= " + body;
                 if(sendProtocolMessage(s, cmd)){
                     receiveResponse(s);
                 }
