@@ -44,8 +44,8 @@ bool isASCii(const string& text){
 
 //Validates a user provided field, like username, title, question body, or answer.
 bool validField(const string& text){
-    char divider= '|';
-    bool valid=false;
+    char divider= '|';  
+    bool valid = false;
     size_t firstDivider= text.find(divider);
     if(firstDivider != string::npos){  //if the divider is found in the string
         string command= text.substr(0, firstDivider);  //get the command
@@ -118,10 +118,10 @@ bool sendAll(SOCKET socketNumber, const string& data){
             cerr << "Send failed: " << WSAGetLastError() << endl;
             return false;
         }
-        total_sent+= n;
+        total_sent+=n;
         bytes_left-=n;
     }
-    return false;
+    return true;
 }
 
 // Connects to the server using a hostname/IP address and port.
