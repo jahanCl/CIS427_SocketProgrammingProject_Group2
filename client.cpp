@@ -306,9 +306,8 @@ int main(int argc, char * argv[]) {
     Repeat until QUIT
       
     Close socket and exit*/
-
     if(argc != 3){
-        cerr << "Usage: client.exe <hostname> <port>" << endl;
+        cerr << "Usage: client.exe <hostname> <port>" << endl;  //check the arguements
         return 1;
     }
     WSADATA wsaData;
@@ -320,15 +319,119 @@ int main(int argc, char * argv[]) {
 
     const char* host= argv[1];
     int port= atoi(argv[2]);
-    SOCKET s= connectToServer(host,port);
+    SOCKET s= connectToServer(host,port);   //connect to the server
 
     if(s==INVALID_SOCKET){
         WSACleanup();
         return 1;
     }
+    bool isUserAuthenticated= false;
+    bool shouldQuit= false;             //initialize state
 
-    cout << "Connected to the server" << endl;
-    displayConnectedMenu();
+    while(!shouldQuit){
+        if(!isUserAuthenticated){
+            displayConnectedMenu();
+            int choice= 0;
+            if(!parsePositiveInteger(choice)){
+                cout << "Invalid input. Please enter a valid menu number.\n" << endl;
+                cin.clear();
+                cin.ignore(MAX_LINE, '\n');
+                continue;
+            }
+            if(choice == 1){    //LOGIN
+                string username;
+                string password;
+                cout << "Username: ";
+                cin >> username;
+                cout << "Password: ";
+                cin >> password;
+
+                string cmd= "LOGIN|username= " + username + "|password= " + password;
+                if(sendProtocolMessage(s, cmd)){
+                    if(receiveResponse(s)){
+                        isUserAuthenticated= true;
+                    }
+                }
+            }
+            else if(choice== 2){    //QUIT
+                sendProtocolMessage(s, "QUIT");
+                shouldQuit= true;
+            }
+            else{
+                cout << "Choice out of range.\n" << endl;
+            }
+        }
+        else{
+            displayAuthenticatedMenu();
+            int choice= 0;
+            if (!parsePositiveInteger(choice)) {
+                cout << "Invalid input. Please enter a valid menu number.\n" << endl;
+                cin.clear();
+                cin.ignore(MAX_LINE, '\n');
+                continue;
+            }
+            else if(choice == 1){   //View Questions
+                if(sendProtocolMessage(s, "VIEW_QUESTIONS")){
+                    receiveResponse(s);
+                }
+            }
+            else if(choice ==2){        //View Question and answers
+                cout << "Enter Question Number: ";
+                int qNum = 0;
+                if (parsePositiveInteger(qNum)) {
+                    string cmd = "VIEW_ANSWER|questionNumber=" + to_string(qNum);
+                    if (sendProtocolMessage(s, cmd)) {
+                        receiveResponse(s);
+                    }
+                } else {
+                    cout << "Invalid question number format.\n" << endl;
+                }
+            }
+            else if(choice == 3){   //Post question
+                string title;
+                string body;
+                cout << "Enter Title: ";
+                getline(cin, title);
+                cout << "Enter Body: ";
+                getline(cin, body);
+                string cmd= "POST_QUESTION|title= " + title + "|body= " + body;
+                if(sendProtocolMessage(s, cmd)){
+                    receiveResponse(s);
+                }
+            }
+            else if(choice == 4){   //Post Answer
+                cout << "Enter Question Number: ";
+                int qNum=0;
+                if(parsePositiveInteger(qNum)){
+                    string answer;
+                    cout << "Enter Answer: ";
+                    getline(cin, answer);
+                    string cmd= "POST_ANSWER|questionNumber= " + to_string(qNum) + "|answer= " + answer;
+                    if(sendProtocolMessage(s, cmd)){
+                        receiveResponse(s);
+                    }
+                }
+                else{
+                    cout << "Invalid Question Number\n" << endl;
+                }
+            }
+            else if(choice == 5){   //LOGOUT
+                if(sendProtocolMessage(s, "LOGOUT")){
+                    receiveResponse(s);
+                    isUserAuthenticated= false;
+                }
+            }
+            else if(choice == 6){   //QUIT
+                if(sendProtocolMessage(s, "QUIT")){
+                    receiveResponse(s);
+                    shouldQuit= true;
+                }
+            }
+            else{
+                cout << "Choice out of range.\n" << endl;
+            }
+        }
+    }
 
 
     closesocket(s);

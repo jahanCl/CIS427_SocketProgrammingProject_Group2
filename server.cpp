@@ -1,9 +1,10 @@
 #include <stdio.h>
-#include <sys/types.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <string.h>
 #include <cstring>
+#include <iostream>
+#include <string>
 #pragma comment(lib, "Ws2_32.lib")
 #define bzero(b, len) memset((b), 0, (len))
 #define close(s) closesocket(s)
@@ -11,6 +12,7 @@
 #define SERVER_PORT 6543
 #define MAX_PENDING 5
 #define MAX_LINE 4096
+using namespace std;
 
 int main(){
     struct sockaddr_in sin;
