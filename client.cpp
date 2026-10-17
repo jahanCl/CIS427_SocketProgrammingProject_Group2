@@ -118,6 +118,9 @@ bool sendAll(SOCKET socketNumber, const string& data){
             cerr << "Send failed: " << WSAGetLastError() << endl;
             return false;
         }
+         if (n == 0) {
+            return false;
+        }
         total_sent+=n;
         bytes_left-=n;
     }
@@ -346,7 +349,7 @@ int main(int argc, char * argv[]) {
                 cout << "Password: ";
                 cin >> password;
 
-                string cmd= "LOGIN|username= " + username + "|password= " + password;
+                string cmd= "LOGIN|username=" + username + "|password=" + password;
                 if(sendProtocolMessage(s, cmd)){
                     if(receiveResponse(s)){
                         isUserAuthenticated= true;
@@ -394,7 +397,7 @@ int main(int argc, char * argv[]) {
                 getline(cin, title);
                 cout << "Enter Body: ";
                 getline(cin, body);
-                string cmd= "POST_QUESTION|title=" + title + "|body= " + body;
+                string cmd= "POST_QUESTION|title=" + title + "|body=" + body;
                 if(sendProtocolMessage(s, cmd)){
                     receiveResponse(s);
                 }
@@ -406,7 +409,7 @@ int main(int argc, char * argv[]) {
                     string answer;
                     cout << "Enter Answer: ";
                     getline(cin, answer);
-                    string cmd= "POST_ANSWER|questionNumber= " + to_string(qNum) + "|answer= " + answer;
+                    string cmd= "POST_ANSWER|questionNumber=" + to_string(qNum) + "|answer=" + answer;
                     if(sendProtocolMessage(s, cmd)){
                         receiveResponse(s);
                     }
