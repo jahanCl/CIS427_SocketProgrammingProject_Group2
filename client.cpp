@@ -5,7 +5,7 @@
 
 //#include <strings.h>
 //#include <sys/socket.h>
-#include <sys/types.h>
+//#include <sys/types.h>
 
 #include <stdio.h>
 
@@ -19,6 +19,7 @@
 #define bzero(b, len) memset((b), 0, (len))
 #define close(s) closesocket(s)
 #define bcopy(src, dest, len) memmove((dest), (src), (len))
+
 
 using namespace std;
 
@@ -44,48 +45,61 @@ bool isASCii(const string& text){
 //Validates a user provided field, like username, title, question body, or answer.
 bool validField(const string& text){
     char divider= '|';
-
+    bool valid=false;
     size_t firstDivider= text.find(divider);
     if(firstDivider != string::npos){  //if the divider is found in the string
         string command= text.substr(0, firstDivider);  //get the command
         if(command == "LOGIN"){
             regex pattern(R"(^LOGIN\|username=([^|]+)\|password=([^\n]+)\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "LOGOUT"){
             regex pattern(R"(^LOGOUT\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "VIEW_QUESTIONS"){
             regex pattern(R"(^VIEW_QUESTIONS\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "VIEW_ANSWER"){
             regex pattern(R"(^VIEW_ANSWER\|questionNumber=([^|]+)\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "POST_QUESTION"){
             regex pattern(R"(^POST_QUESTION\|title=([^|]+)\|body=([^\n]+)\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "POST_ANSWER"){
             regex pattern(R"(^POST_ANSWER\|questionNumber=([^|]+)\|answer=([^\n]+)\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
         else if(command == "QUIT"){
             regex pattern(R"(^QUIT\n$)");
-            return regex_match(text, pattern);
+            valid= regex_match(text, pattern);
         }
     }
     else
     {
-        return false;  //if the divider is not found, return false
+        valid= false;  //if the divider is not found, return false
     }
-    
+    return valid;
 }
 
 //Reads and validates when a positive integer is input into the terminal.
-bool parsePositiveInteger(){}
+bool parsePositiveInteger(int& outputValue){
+    string input;
+    cin >> input;
+
+    regex integerPattern("^[0-9]+$");
+    if(regex_match(input, integerPattern)){
+        int value= atoi(input.c_str());
+        if(value > 0){
+            outputValue= value;
+            return true;
+        }
+    }
+    return false;
+}
 
 
 
@@ -94,10 +108,50 @@ bool parsePositiveInteger(){}
 // ============================================================
 
 //Sends all bytes in data.
-bool sendAll(int socketNumber, const string& data){}
+bool sendAll(SOCKET socketNumber, const string& data){
+    size_t total_sent=0;
+    size_t bytes_left= data.size();
+    const char* ptr= data.data();
+    while(total_sent < data.size()){
+        int n= send(socketNumber, ptr +total_sent, (int)bytes_left, 0);
+        if(n == SOCKET_ERROR){
+            cerr << "Send failed: " << WSAGetLastError() << endl;
+            return false;
+        }
+        total_sent+= n;
+        bytes_left-=n;
+    }
+    return false;
+}
 
 // Connects to the server using a hostname/IP address and port.
-int connectToServer(){}
+SOCKET connectToServer(const char* host, int port){
+    struct hostent* hp;
+    struct sockaddr_in sin;
+
+    hp= gethostbyname(host);
+    if(hp == NULL){
+        cerr << "Unknown host: " << host << endl;
+        return INVALID_SOCKET;
+    }
+    bzero(&sin, sizeof(sin));
+    sin.sin_family= AF_INET;
+    bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
+    sin.sin_port= htons(port);
+
+    SOCKET s=socket(AF_INET, SOCK_STREAM, 0);
+    if(s == INVALID_SOCKET){
+        cerr << "Socket creation failed: " << WSAGetLastError() << endl;
+        return INVALID_SOCKET;
+    }
+    if(connect(s, (struct sockaddr*)&sin, sizeof(sin))== SOCKET_ERROR){
+        cerr << "Connection failed: " << WSAGetLastError() << endl;
+        closesocket(s);
+        return INVALID_SOCKET;
+    }
+    cout << "Connected to server" << endl;
+    return s;
+}
 
 
 
@@ -105,10 +159,32 @@ int connectToServer(){}
 // Receive Buffer and Message Framing
 // ============================================================
 //Sends one protocol line.
-bool sendProtocolMessage(int socketNumber, const string& line) {}
+bool sendProtocolMessage(SOCKET socketNumber, const string& line) {
+    string message= line;
+    if(message.empty() || message.back() != '\n'){
+        message += '\n';
+    }
+    return sendAll(socketNumber, message);  //ensures a command entered ends with \n to provide a new line
+}
             
 //Return one complete protocol line without its newline.
-string receiveLine(){}   //string may or may not exist 
+string receiveLine(SOCKET socketNumber){
+    string line= "";
+    char buffer[RECEIVE_CHUNK];
+    while(true){
+        int bytesReceived= recv(socketNumber, buffer, 1, 0);
+        if(bytesReceived <= 0){
+            break;
+        }
+        line.append(buffer, bytesReceived);
+        size_t newLinePosition= line.find('\n');
+        if(newLinePosition != string::npos){
+            string completeLine= line.substr(0, newLinePosition);
+            return completeLine;
+        }
+    }
+    return "";
+}   //string may or may not exist 
 
 
 // ============================================================
@@ -116,7 +192,67 @@ string receiveLine(){}   //string may or may not exist
 // ============================================================
 
 //Receives and displays one complete server response.
-bool receiveResponse(){}
+bool receiveResponse(SOCKET socketNumber){
+    string responseCode= receiveLine(socketNumber);
+    if(responseCode.empty()){
+        return false;
+    }
+    size_t divider= responseCode.find('|');
+    string code= "";
+    string message= "";
+    if(divider != string::npos){
+        code= responseCode.substr(0, divider);
+        message= responseCode.substr(divider + 1);
+    }
+    else{
+        code=responseCode;
+    }
+     if (code == "200") {
+        cout << "\n[200 OK] " << message << endl;
+        return true;
+    } 
+    else if(code == "300"){
+        cout << "\n[300 message format error]" << message << endl;
+        return false;
+    }
+    else if(code== "400"){
+        cout << "\n[400 unknown command]" << message << endl;
+        return false;
+    }
+    else if(code== "401"){
+        cout << "\n[401 you are not currently logged in, login first]" << message << endl;
+        return false;
+    }
+    else if(code== "404"){
+        cout << "\n[404 question not found]" << message << endl;
+        return false;
+    }
+    else if(code== "409"){
+        cout << "\n[409 command not allowed in current state]" << message << endl;
+        return false;
+    }
+    else if(code== "410"){
+        cout << "\n[410 wrong username or password]" << message << endl;
+        return false;
+    }
+    else if(code== "413"){
+        cout << "\n[413 content too large]" << message << endl;
+        return false;
+    }
+    else if(code== "415"){
+        cout << "\n[415 non-ASCII content]" << message << endl;
+        return false;
+    }
+    else if(code== "500"){
+        cout << "\n[500 internal server error]" << message << endl;
+        return false;
+    }
+    else {
+        // Catch-all for unexpected codes or raw multi-line payloads
+        cout << "\n[" << code << "] " << message << endl;
+        return true;
+    }
+}
 
 
 
@@ -170,44 +306,34 @@ int main(int argc, char * argv[]) {
     Repeat until QUIT
       
     Close socket and exit*/
-    FILE *fp;
-    struct hostent *hp;
-    struct sockaddr_in sin;
-    char *host;
-    char buf[MAX_LINE];
-    int s;
-    int len;
 
-    if(argc == 2){
-        host=argv[1];
+    if(argc != 3){
+        cerr << "Usage: client.exe <hostname> <port>" << endl;
+        return 1;
     }
-    else{
-        fprintf(stderr, "usage: simplex-talk host\n");
-        exit(1);
+    WSADATA wsaData;
+
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0){
+        cerr << "Winsock initialization failed." << endl;
+        return 1;
     }
-    hp= gethostbyname(host);
-    if(!hp){
-        fprintf(stderr, "simplex-talk: unknown host: %s\n", host);
-        exit(1);
+
+    const char* host= argv[1];
+    int port= atoi(argv[2]);
+    SOCKET s= connectToServer(host,port);
+
+    if(s==INVALID_SOCKET){
+        WSACleanup();
+        return 1;
     }
-    bzero((char *)&sin, sizeof(sin));
-    sin.sin_family=AF_INET;
-    bcopy(hp->h_addr, (char *)&sin.sin_addr, hp->h_length);
-    sin.sin_port=htons(SERVER_PORT);
-    if((s=socket(PF_INET, SOCK_STREAM, 0)) < 0){
-        perror("simplex-talk: socket");
-        exit(1);
-    }
-    if(connect(s, (struct sockaddr *)&sin, sizeof(sin)) < 0){
-        perror("simplex-talk: connect");
-        close(s);
-        exit(1);
-    }
-    while(fgets(buf, sizeof(buf), stdin)){
-        buf[MAX_LINE-1]='\0';
-        len=strlen(buf) + 1;
-        send(s, buf, len, 0);
-    }
+
+    cout << "Connected to the server" << endl;
+    displayConnectedMenu();
+
+
+    closesocket(s);
+    WSACleanup();
+    return 0;
 }
 
 
