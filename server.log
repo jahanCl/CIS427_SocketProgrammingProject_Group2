@@ -1,0 +1,77 @@
+2026-10-18T04:30:34 INFO Server startup
+2026-10-18T04:30:34 INFO Server listening on 0.0.0.0:6543
+2026-10-18T04:30:45 INFO client-1 connected from 127.0.0.1
+2026-10-18T04:30:56 INFO client-1 request=LOGIN
+2026-10-18T04:30:56 WARN client-1 command=LOGIN outcome=error
+2026-10-18T04:31:05 INFO client-1 request=QUIT
+2026-10-18T04:31:05 INFO client-1 command=QUIT outcome=success
+2026-10-18T04:31:05 INFO client-1 disconnected gracefully
+2026-10-18T04:31:22 INFO client-2 connected from 127.0.0.1
+2026-10-18T04:31:42 INFO client-2 request=LOGIN
+2026-10-18T04:31:42 INFO client-2 command=LOGIN outcome=success
+2026-10-18T04:31:44 INFO client-2 request=VIEW_QUESTIONS
+2026-10-18T04:31:44 INFO client-2 command=VIEW_QUESTIONS outcome=success
+2026-10-18T04:32:19 INFO client-2 request=VIEW_ANSWER
+2026-10-18T04:32:19 WARN client-2 command=VIEW_ANSWER outcome=error
+2026-10-18T04:32:37 INFO client-2 request=POST_QUESTION
+2026-10-18T04:32:37 INFO client-2 command=POST_QUESTION outcome=success
+2026-10-18T04:32:47 INFO client-2 request=VIEW_QUESTIONS
+2026-10-18T04:32:47 INFO client-2 command=VIEW_QUESTIONS outcome=success
+2026-10-18T04:32:56 INFO client-2 request=VIEW_ANSWER
+2026-10-18T04:32:56 INFO client-2 command=VIEW_ANSWER outcome=success
+2026-10-18T04:33:25 INFO client-2 request=POST_ANSWER
+2026-10-18T04:33:25 INFO client-2 command=POST_ANSWER outcome=success
+2026-10-18T04:33:28 INFO client-2 request=VIEW_ANSWER
+2026-10-18T04:33:28 INFO client-2 command=VIEW_ANSWER outcome=success
+2026-10-18T04:33:39 INFO client-2 request=LOGOUT
+2026-10-18T04:33:39 INFO client-2 command=LOGOUT outcome=success
+2026-10-18T04:33:41 INFO client-2 request=QUIT
+2026-10-18T04:33:41 INFO client-2 command=QUIT outcome=success
+2026-10-18T04:33:41 INFO client-2 disconnected gracefully
+2026-10-18T07:05:56 INFO Server startup
+2026-10-18T07:05:56 INFO Server listening on 0.0.0.0:6543
+2026-10-18T07:06:47 INFO client-1 connected from 127.0.0.1
+2026-10-18T07:06:59 INFO client-1 request=LOGIN
+2026-10-18T07:06:59 INFO client-1 command=LOGIN outcome=success
+2026-10-18T07:07:25 INFO client-1 request=POST_ANSWER
+2026-10-18T07:07:25 WARN client-1 command=POST_ANSWER outcome=error
+2026-10-18T07:07:34 INFO client-1 request=VIEW_ANSWER
+2026-10-18T07:07:34 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-10-18T07:07:42 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T07:07:42 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T07:07:54 INFO client-1 request=VIEW_ANSWER
+2026-10-18T07:07:54 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-10-18T19:26:17 INFO Server startup
+2026-10-18T19:26:17 INFO Server listening on 0.0.0.0:6543
+2026-10-18T19:27:42 INFO client-1 connected from 127.0.0.1
+2026-10-18T19:27:53 INFO client-1 request=LOGIN
+2026-10-18T19:27:53 INFO client-1 command=LOGIN outcome=success
+2026-10-18T19:27:56 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T19:27:56 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T19:27:58 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T19:27:58 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T19:28:00 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T19:28:00 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T19:28:11 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T19:28:11 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T19:28:19 INFO client-1 request=VIEW_ANSWER
+2026-10-18T19:28:19 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-10-18T19:28:33 INFO client-1 request=POST_QUESTION
+2026-10-18T19:28:33 INFO client-1 command=POST_QUESTION outcome=success
+2026-10-18T19:28:39 INFO client-1 request=VIEW_ANSWER
+2026-10-18T19:28:39 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-10-18T19:28:50 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T19:28:50 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T19:29:02 INFO client-1 request=VIEW_ANSWER
+2026-10-18T19:29:02 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-10-18T19:30:12 INFO client-1 request=POST_ANSWER
+2026-10-18T19:30:12 INFO client-1 command=POST_ANSWER outcome=success
+2026-10-18T19:30:14 INFO client-1 request=VIEW_ANSWER
+2026-10-18T19:30:14 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-10-18T19:30:23 INFO client-1 request=LOGOUT
+2026-10-18T19:30:23 INFO client-1 command=LOGOUT outcome=success
+2026-10-18T19:30:27 INFO client-1 request=QUIT
+2026-10-18T19:30:27 INFO client-1 command=QUIT outcome=success
+2026-10-18T19:30:27 INFO client-1 disconnected gracefully
+2026-10-18T22:53:50 INFO Server startup
+2026-10-18T22:53:50 INFO Server listening on 0.0.0.0:6543

@@ -1,450 +1,473 @@
-#include <cstdlib>
+/*Overall client flow:
+ * 1. Validate the server hostname and port.
+ * 2. Connect to the server through TCP.
+ * 3. Display a menu based on login state.
+ * 4. Collect and validate user input.
+ * 5. Format and send a protocol request.
+ * 6. Receive and display the server response.
+ * 7. Repeat until the user sends QUIT.*/
+
+
+#include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <regex>
-
-//#include <strings.h>
-//#include <sys/socket.h>
-//#include <sys/types.h>
-
-#include <stdio.h>
-
-//#include <arpa/inet.h>
-//#include <netdb.h>
-//#include <netinet/in.h>
-//#include <unistd.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#pragma comment(lib, "Ws2_32.lib")
-#define bzero(b, len) memset((b), 0, (len))
-#define close(s) closesocket(s)
-#define bcopy(src, dest, len) memmove((dest), (src), (len))
-
+#include <netdb.h>
+#include <netinet/in.h>
+#include <optional>
+#include <string>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 using namespace std;
 
-#define SERVER_PORT 6543
-#define MAX_LINE 4096           //Total bytes allowed in a line
-#define RECEIVE_CHUNK 1024      //Bytes to receive at a time
+#define MAX_LINE 4096        // Maximum bytes in one protocol line.
+#define RECEIVE_CHUNK 1024 // Number of bytes requested per recv().
 
 
 // ============================================================
 // Input Validator
 // ============================================================
 
-// Returns true if every character in a string is an ASCII character.
+//Returns true if every character in a string is an ASCII character.
 bool isASCii(const string& text){     
-     for (unsigned char character : text) {   //loop through evrey byte in string 
-            if (character > 127 || character < 0) {   //if the byte is not in the ASCII range
+    for (unsigned char character : text) {   //loop through evrey byte in string 
+        if (character > 127 || character < 0) {   //if the byte is not in the ASCII range
                 return false;   //return false
-            }
         }
+    }
     return true;
 }
 
-//Validates a user provided field, like username, title, question body, or answer.
-bool validField(const string& text){
-    char divider= '|';  
-    bool valid = false;
-    size_t firstDivider= text.find(divider);
-    if(firstDivider != string::npos){  //if the divider is found in the string
-        string command= text.substr(0, firstDivider);  //get the command
-        if(command == "LOGIN"){
-            regex pattern(R"(^LOGIN\|username=([^|]+)\|password=([^\n]+)\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "LOGOUT"){
-            regex pattern(R"(^LOGOUT\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "VIEW_QUESTIONS"){
-            regex pattern(R"(^VIEW_QUESTIONS\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "VIEW_ANSWER"){
-            regex pattern(R"(^VIEW_ANSWER\|questionNumber=([^|]+)\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "POST_QUESTION"){
-            regex pattern(R"(^POST_QUESTION\|title=([^|]+)\|body=([^\n]+)\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "POST_ANSWER"){
-            regex pattern(R"(^POST_ANSWER\|questionNumber=([^|]+)\|answer=([^\n]+)\n$)");
-            valid= regex_match(text, pattern);
-        }
-        else if(command == "QUIT"){
-            regex pattern(R"(^QUIT\n$)");
-            valid= regex_match(text, pattern);
-        }
-    }
-    else
-    {
-        valid= false;  //if the divider is not found, return false
-    }
-    return valid;
+
+//Validates one user-provided field such as a username, title, or answer.
+bool validField(const string& text) {
+    return !text.empty() &&                  //Required fields cannot be empty.
+           isASCii(text) &&                  //Only ASCII text is accepted.
+           text.find('|') == string::npos && // | is only for seperating fields.
+           text.find('\n') == string::npos ; //Newline not inside a protocol message, only at end.
 }
 
-//Reads and validates when a positive integer is input into the terminal.
-bool parsePositiveInteger(int& outputValue){
-    string input;
-    cin >> input;
+// Converts a string into a positive integer.
+ 
+bool parsePositiveInteger(const string& text,int& output) {
+    try {
+        size_t used = 0;                // Records how much of the string was parsed.
+        int value = stoi(text, &used);  // Attempts to convert the string to an integer.
 
-    regex integerPattern("^[0-9]+$");
-    if(regex_match(input, integerPattern)){
-        int value= atoi(input.c_str());
-        if(value > 0){
-            outputValue= value;
-            return true;
+        if (used != text.size() ||      // Rejects trailing text, such as "12abc".
+            value <= 0) {               // Rejects zero and negative numbers.
+            return false;
         }
-    }
-    return false;
-}
 
+        output = value;                 // Stores the validated integer.
+        return true;
+    }
+    catch (...) {                       // Catches invalid or out-of-range input.
+        return false;
+    }
+}
 
 
 // ============================================================
 // Client Socket Handler
 // ============================================================
 
-//Sends all bytes in data.
-bool sendAll(SOCKET socketNumber, const string& data){
-    size_t total_sent=0;
-    size_t bytes_left= data.size();
-    const char* ptr= data.data();
-    while(total_sent < data.size()){
-        int n= send(socketNumber, ptr +total_sent, (int)bytes_left, 0);
-        if(n == SOCKET_ERROR){
-            cerr << "Send failed: " << WSAGetLastError() << endl;
+//Sends every byte in a string.
+bool sendAll( int socketNumber, const string& data) {
+    size_t totalSent = 0;   //Tracks the number of bytes already sent.
+
+    while (totalSent < data.size()) { // Continue until all bytes are sent.
+        ssize_t bytesSent = send(
+            socketNumber,             //Connected socket.
+            data.data() + totalSent,  //Address of the first unsent byte.
+            data.size() - totalSent,  //Number of remaining bytes.
+            0                         //No special flags.
+        );
+
+        if (bytesSent < 0) {          //A negative value means send() failed.
+            if (errno == EINTR) {     //The system call was interrupted.
+                continue;             //Retry the send operation.
+            }
+            cerr << "Send failed: "<< strerror(errno)<< '\n';
+            return false;             
+        }
+        if (bytesSent == 0) {         //No data was sent.
             return false;
         }
-         if (n == 0) {
-            return false;
-        }
-        total_sent+=n;
-        bytes_left-=n;
+        totalSent += static_cast<size_t>(bytesSent); //Update the total number of bytes sent. 
     }
-    return true;
-}
-
-// Connects to the server using a hostname/IP address and port.
-SOCKET connectToServer(const char* host, int port){
-    struct hostent* hp;
-    struct sockaddr_in sin;
-
-    hp= gethostbyname(host);
-    if(hp == NULL){
-        cerr << "Unknown host: " << host << endl;
-        return INVALID_SOCKET;
-    }
-    bzero(&sin, sizeof(sin));
-    sin.sin_family= AF_INET;
-    bcopy(hp->h_addr, &sin.sin_addr, hp->h_length);
-    sin.sin_port= htons(port);
-
-    SOCKET s=socket(AF_INET, SOCK_STREAM, 0);
-    if(s == INVALID_SOCKET){
-        cerr << "Socket creation failed: " << WSAGetLastError() << endl;
-        return INVALID_SOCKET;
-    }
-    if(connect(s, (struct sockaddr*)&sin, sizeof(sin))== SOCKET_ERROR){
-        cerr << "Connection failed: " << WSAGetLastError() << endl;
-        closesocket(s);
-        return INVALID_SOCKET;
-    }
-    cout << "Connected to server" << endl;
-    return s;
+    return true;    //Every byte was sent successfully.
 }
 
 
+//Adds the required newline delimiter and sends one protocol line.
+bool sendLine(int socketNumber,const string& line) {
+    string framedLine = line + "\n";
+
+    if (!isASCii(framedLine)) {      //Checks if the framed line contains only ASCII characters.
+        cout << "Only ASCII input is allowed.\n";
+        return false;
+    }
+
+    if (framedLine.size() > MAX_LINE) {    // Checks if the framed line exceeds the maximum allowed bytes.
+        cout << "Message exceeds 4,096 bytes.\n";
+        return false;
+    }
+    return sendAll(socketNumber, framedLine);  //Sends the complete framed line using sendAll().
+}
+
+//Finds a hostname or IP address and connects to the server.
+int connectToServer(const string& host, const string& port) {
+    addrinfo hints{};                //Stores address search requirements.
+    hints.ai_family = AF_UNSPEC;     //Allows IPv4 or IPv6.
+    hints.ai_socktype = SOCK_STREAM; //Requests a TCP stream socket.
+    hints.ai_protocol = IPPROTO_TCP; //Explicitly requests TCP.
+
+    addrinfo* results = nullptr;     //Will point to resolved addresses.
+
+    //getaddrinfo(host or IP, port, address requirements, list of addresses).
+    int status = getaddrinfo(host.c_str(), port.c_str(),&hints,&results);
+
+    //If Hostname lookup failed.
+    if (status != 0) {               
+        cerr << "Address lookup failed: "<< gai_strerror(status)<< '\n';
+        return -1;        //-1 represents no connected socket.
+    }
+    int connectedSocket = -1;       //No connection has succeeded yet.
+
+        //Start at the first resolved address, continue while addresses remain, move to next address.
+    for (addrinfo* current = results; current != nullptr; current = current->ai_next) {
+
+        //scocket(IPv4 or IPv6, TCP stream socket, TCP protocol).
+        int candidate = socket( current->ai_family, current->ai_socktype, current->ai_protocol); 
+
+        //If socket creation failed for this address, try the next address.
+        if (candidate < 0) {        
+            continue;        
+        }
+
+        //If the connection attempt succeeds, save the socket and stop trying.
+        if (connect(candidate, current->ai_addr, current->ai_addrlen) == 0) {
+            connectedSocket = candidate; //Save  successful socket.
+            break;                       //Stop trying addresses.
+        }
+        close(candidate);      //Release the failed candidate socket.
+    }
+    freeaddrinfo(results);     //Release memory from getaddrinfo()
+
+    return connectedSocket;     //Return connected socket or -1.
+}
 
 // ============================================================
 // Receive Buffer and Message Framing
 // ============================================================
-//Sends one protocol line.
-bool sendProtocolMessage(SOCKET socketNumber, const string& line) {
-    string message= line;
-    if(message.empty() || message.back() != '\n'){
-        message += '\n';
+/// Receives exactly one newline-delimited protocol line
+///optinal becasue could be no line to return if the connection is closed or an error occurs.
+optional<string> receiveLine(int socketNumber,string& receiveBuffer) {
+    //Search buffered data for a complete line.
+    while (true) {
+        size_t newline = receiveBuffer.find('\n');  //Search buffered data for a complete line.
+
+        // A complete line is available.
+        if (newline != string::npos) {
+            size_t framedSize =
+                newline + 1;           //Include the newline in the size check.
+
+            if (framedSize > MAX_LINE) {
+                cerr << "413 Content too Large.\n";
+                return nullopt;        //No valid line can be returned.
+            }
+
+            string line = receiveBuffer.substr(0,newline);  //Extract the line without the newline.
+            receiveBuffer.erase(0,framedSize);              //Removes only the completed line.
+        
+            if (!isASCii(line)) {      //Validate server response .
+                cerr << "415 non-ASCII content.\n";
+                return nullopt;
+            }
+            return line;       //Return one complete protocol line.
+        }
+        //If no newline arrived before the limit, check if the buffer is already too large.
+        if (receiveBuffer.size() >= MAX_LINE) {             
+            cerr << "413 Content too Large.\n";
+            return nullopt;
+        }
+
+        char buffer[RECEIVE_CHUNK];     //Temporary storage for newly received bytes.
+        //bytesRecieved = recv(socketNumber, buffer, sizeof(buffer), 0);
+        ssize_t bytesReceived = recv(socketNumber,buffer,sizeof(buffer),0);
+
+        //Got nothing from the server, which prob means the connection was closed.
+        if (bytesReceived == 0) {
+            cerr << "400 unknown command.\n";
+            return nullopt;
+        }
+        //If recv() failed, check if it was interrupted by a signal and retry if so.
+        if (bytesReceived < 0) {        
+            if (errno == EINTR) {       
+                continue;             
+            }
+            cerr << "Receive failed: "<< strerror(errno)<< '\n';
+            return nullopt;
+        } 
+        //Add the bytes received.
+        receiveBuffer.append(buffer,static_cast<size_t>(bytesReceived));
     }
-    return sendAll(socketNumber, message);  //ensures a command entered ends with \n to provide a new line
 }
-            
-//Return one complete protocol line without its newline.
-string receiveLine(SOCKET socketNumber){
-    string line= "";
-    char buffer[RECEIVE_CHUNK];
-    while(true){
-        int bytesReceived= recv(socketNumber, buffer, 1, 0);
-        if(bytesReceived <= 0){
-            break;
-        }
-        line.append(buffer, bytesReceived);
-        size_t newLinePosition= line.find('\n');
-        if(newLinePosition != string::npos){
-            string completeLine= line.substr(0, newLinePosition);
-            return completeLine;
-        }
-    }
-    return "";
-}   //string may or may not exist 
 
 
 // ============================================================
 // Protocol Formatter and Parser
 // ============================================================
 
-//Receives and displays one complete server response.
-bool receiveResponse(SOCKET socketNumber){
-    string responseCode= receiveLine(socketNumber);
-    if(responseCode.empty()){
+// Receives and displays one complete server response.
+bool receiveResponse(int socketNumber,string& receiveBuffer,bool mayBeMultiline) {
+    optional<string> firstLine =receiveLine(socketNumber,receiveBuffer);
+
+    if (!firstLine.has_value()) {     // Network or framing error occurred.
         return false;
     }
-    size_t divider= responseCode.find('|');
-    string code= "";
-    string message= "";
-    if(divider != string::npos){
-        code= responseCode.substr(0, divider);
-        message= responseCode.substr(divider + 1);
+
+    cout << *firstLine << '\n';   //Display line status, error, or COUNT. 
+    // If the response is not a successful multiline response, return.
+    if (!mayBeMultiline ||firstLine->rfind("200 OK", 0) != 0) {
+        return true;                  
     }
-    else{
-        code=responseCode;
-    }
-     if (code == "200") {
-        cout << "\n[200 OK] " << message << endl;
-        return true;
-    } 
-    else if(code == "300"){
-        cout << "\n[300 message format error]" << message << endl;
-        return false;
-    }
-    else if(code== "400"){
-        cout << "\n[400 unknown command]" << message << endl;
-        return false;
-    }
-    else if(code== "401"){
-        cout << "\n[401 you are not currently logged in, login first]" << message << endl;
-        return false;
-    }
-    else if(code== "404"){
-        cout << "\n[404 question not found]" << message << endl;
-        return false;
-    }
-    else if(code== "409"){
-        cout << "\n[409 command not allowed in current state]" << message << endl;
-        return false;
-    }
-    else if(code== "410"){
-        cout << "\n[410 wrong username or password]" << message << endl;
-        return false;
-    }
-    else if(code== "413"){
-        cout << "\n[413 content too large]" << message << endl;
-        return false;
-    }
-    else if(code== "415"){
-        cout << "\n[415 non-ASCII content]" << message << endl;
-        return false;
-    }
-    else if(code== "500"){
-        cout << "\n[500 internal server error]" << message << endl;
-        return false;
-    }
-    else {
-        // Catch-all for unexpected codes or raw multi-line payloads
-        cout << "\n[" << code << "] " << message << endl;
-        return true;
+
+    while (true) {                     
+        // Continue through successful multiline data.
+        optional<string> line =receiveLine( socketNumber,receiveBuffer);
+        if (!line.has_value()) {return false;}
+
+        cout << *line << '\n';   //Display COUNT, QUESTION, ANSWER, or END.
+
+        if (*line == "END") {  //END marks the response boundary.
+            return true;
+        }
     }
 }
-
-
-
-
-
-  
 
 // ============================================================
 // Menu-Driven Command-Line Interface and Client State
 // ============================================================
 void displayConnectedMenu() {
-    cout << "CLASS DISCUSSION BOARD\n"
-         << "1. Login\n"
+    cout << "\n1. Login\n"
          << "2. Quit\n"
-         << "Selection:\n";
+         << "Selection: ";
 }
 
 void displayAuthenticatedMenu() {
-    cout << "CLASS DISCUSSION BOARD\n"
+    cout << "\nDiscussion Board Menu:\n"
          << "1. View questions\n"
          << "2. View question and answers\n"
-         << "3. Post a question\n"
-         << "4. Post an answer\n"
+         << "3. Post question\n"
+         << "4. Post answer\n"
          << "5. Logout\n"
          << "6. Quit\n"
-         << "Selection: \n";
+         << "Selection: ";
 }
 
+// ============================================================
+// Main Client Flow
+// ============================================================
 
-
-
-// command line arguments,  ./client localhost 5050  = 3
-int main(int argc, char * argv[]) {
-    //TO DO: Implement the main function to handle the client logic as described in the comments below.
-    /*Check arguments
-      
-    Connect to server
-      
-    Initialize client state
-      
-    Display appropriate menu
-      
-    Read and validate user choice
-      
-    Send request
-      
-    Receive and display response
-      
-    Update login state
-      
-    Repeat until QUIT
-      
-    Close socket and exit*/
-    if(argc != 3){
-        cerr << "Usage: client.exe <hostname> <port>" << endl;  //check the arguements
+int main(int argc, char* argv[]) {
+    // Expected command: ./client <hostname-or-IP> <port>
+    if (argc != 3) {
+        cerr << "Usage: "<< argv[0]<< " <hostname-or-IP> <port>\n";
         return 1;
     }
-    WSADATA wsaData;
+    int portNumber = 0;   //Stores the validated port.
 
-    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0){
-        cerr << "Winsock initialization failed." << endl;
+    if (!parsePositiveInteger(argv[2],portNumber) ||portNumber > 65535) {
+        cerr << "Invalid port.\n";
+        return 1;
+    }
+    //argv[1]: host name or IP address, argv[2]: port number
+    int socketNumber = connectToServer(argv[1], argv[2]);
+
+    //Invalid socket number means the connection failed.
+    if (socketNumber < 0) {
+        cerr << "Unable to connect to server.\n";
         return 1;
     }
 
-    const char* host= argv[1];
-    int port= atoi(argv[2]);
-    SOCKET s= connectToServer(host,port);   //connect to the server
+    cout << "Connected to server.\n";
 
-    if(s==INVALID_SOCKET){
-        WSACleanup();
-        return 1;
-    }
-    bool isUserAuthenticated= false;
-    bool shouldQuit= false;             //initialize state
+    bool authenticated = false; //Controls which menu is displayed.
+    bool running = true;        //Controls when the program exits.
+    string receiveBuffer;       //Stores unused TCP response bytes.
 
-    while(!shouldQuit){
-        if(!isUserAuthenticated){
-            displayConnectedMenu();
-            int choice= 0;
-            if(!parsePositiveInteger(choice)){
-                cout << "Invalid input. Please enter a valid menu number.\n" << endl;
-                cin.clear();
-                cin.ignore(MAX_LINE, '\n');
-                continue;
-            }
-            if(choice == 1){    //LOGIN
-                string username;
-                string password;
-                cout << "Username: ";
-                cin >> username;
-                cout << "Password: ";
-                cin >> password;
-
-                string cmd= "LOGIN|username=" + username + "|password=" + password;
-                if(sendProtocolMessage(s, cmd)){
-                    if(receiveResponse(s)){
-                        isUserAuthenticated= true;
-                    }else {
-                        cout << "Login Rejected. Please try again.\n" << endl;
-                    }
-                }
-            }
-            else if(choice== 2){    //QUIT
-                sendProtocolMessage(s, "QUIT");
-                shouldQuit= true;
-            }
-            else{
-                cout << "Choice out of range.\n" << endl;
-            }
-        }
-        else{
+    while (running) {
+        if (authenticated) {
             displayAuthenticatedMenu();
-            int choice= 0;
-            if (!parsePositiveInteger(choice)) {
-                cout << "Invalid input. Please enter a valid menu number.\n" << endl;
-                cin.clear();
-                cin.ignore(MAX_LINE, '\n');
+        }
+        else {
+            displayConnectedMenu();
+        }
+
+        string choice;
+        getline(cin, choice);  //Read the complete menu selection.
+
+        //LOGIN
+        if (!authenticated && choice == "1") {
+            string username;
+            string password;
+
+            cout << "Username: ";
+            getline(cin, username);
+
+            cout << "Password: ";
+            getline(cin, password);
+
+            if (!validField(username) ||!validField(password)) {
+                cout << "410 Wrong username or password\n";
                 continue;
             }
-            else if(choice == 1){   //View Questions
-                if(sendProtocolMessage(s, "VIEW_QUESTIONS")){
-                    receiveResponse(s);
-                }
+            //Format of LOGIN request
+            string request ="LOGIN|username=" + username +"|password=" + password;
+
+            if (!sendLine(socketNumber, request)) {
+                break;
             }
-            else if(choice ==2){        //View Question and answers
-                cout << "Enter Question Number: ";
-                int qNum = 0;
-                if (parsePositiveInteger(qNum)) {
-                    string cmd = "VIEW_ANSWER|questionNumber=" + to_string(qNum);
-                    if (sendProtocolMessage(s, cmd)) {
-                        receiveResponse(s);
-                    }
-                } else {
-                    cout << "Invalid question number format.\n" << endl;
-                }
+
+            optional<string> response =receiveLine(socketNumber,receiveBuffer);
+
+            if (!response.has_value()) {
+                break;
             }
-            else if(choice == 3){   //Post question
-                string title;
-                string body;
-                cout << "Enter Title: ";
-                getline(cin, title);
-                cout << "Enter Body: ";
-                getline(cin, body);
-                string cmd= "POST_QUESTION|title=" + title + "|body=" + body;
-                if(sendProtocolMessage(s, cmd)){
-                    receiveResponse(s);
-                }
+
+            cout << *response << '\n';
+
+            //Check server authetication.The client updates menu only after success.
+            if (response->rfind("200 OK|userId=",0) == 0) {
+                authenticated = true;
             }
-            else if(choice == 4){   //Post Answer
-                cout << "Enter Question Number: ";
-                int qNum=0;
-                if(parsePositiveInteger(qNum)){
-                    string answer;
-                    cout << "Enter Answer: ";
-                    getline(cin, answer);
-                    string cmd= "POST_ANSWER|questionNumber=" + to_string(qNum) + "|answer=" + answer;
-                    if(sendProtocolMessage(s, cmd)){
-                        receiveResponse(s);
-                    }
-                }
-                else{
-                    cout << "Invalid Question Number\n" << endl;
-                }
+        } 
+
+        //QUIT before loging in
+        else if (!authenticated && choice == "2") {  //Choose to quit
+            if (sendLine(socketNumber, "QUIT")) {
+                receiveResponse(socketNumber,receiveBuffer,false);
             }
-            else if(choice == 5){   //LOGOUT
-                if(sendProtocolMessage(s, "LOGOUT")){
-                    receiveResponse(s);
-                    isUserAuthenticated= false;
-                }
+            running = false;
+        }
+
+        //VIEW_QUESTIONS
+        //Discusstion Board option 1
+        else if (authenticated && choice == "1") {   //
+            if (!sendLine(socketNumber,"VIEW_QUESTIONS") ||
+                !receiveResponse(socketNumber,receiveBuffer,true)) {
+                break;
             }
-            else if(choice == 6){   //QUIT
-                if(sendProtocolMessage(s, "QUIT")){
-                    receiveResponse(s);
-                    shouldQuit= true;
-                }
+        }
+        //VIEW_ANSWER
+        else if (authenticated && choice == "2") {
+            string questionText;     //Stores user input for question number.
+            int questionNumber = 0;  //set to 0 to indicate no valid question number yet.
+
+            cout << "Question number: ";
+            getline(cin, questionText);
+
+            if (!parsePositiveInteger(questionText,questionNumber)) {
+                cout << "404 question not Found.\n";
+                continue;
             }
-            else{
-                cout << "Choice out of range.\n" << endl;
+
+            //whats sent to the server for VIEW_ANSWER request
+            string request = "VIEW_ANSWER|questionNumber=" + to_string(questionNumber);
+
+            if (!sendLine(socketNumber, request) ||
+                !receiveResponse(socketNumber,receiveBuffer,true)) {
+                break;
             }
+        }
+        //POST_QUESTION
+        else if (authenticated && choice == "3") {
+            string title;   //question title
+            string body;    //question body
+
+            cout << "Title: ";
+            getline(cin, title);
+
+            cout << "Question: ";
+            getline(cin, body);
+
+            if (!validField(title) ||!validField(body)) {
+                cout << "300 message format error.\n";
+                continue;
+            }
+            //whats sent to the server for POST_QUESTION request
+            string request ="POST_QUESTION|title=" + title +"|body=" + body;
+
+            if (!sendLine(socketNumber, request) ||
+                !receiveResponse( socketNumber, receiveBuffer,false)) {
+                break;
+            }
+        }
+
+        //POST_ANSWER
+        else if (authenticated && choice == "4") {
+            string questionText;
+            string answer;
+            int questionNumber = 0;
+
+            cout << "Question number: ";
+            getline(cin, questionText);
+
+            if (!parsePositiveInteger(questionText, questionNumber)) {
+                cout << "Invalid question number.\n";
+                continue;
+            }
+
+            cout << "Answer: ";
+            getline(cin, answer);
+
+            if (!validField(answer)) {
+                cout << "Invalid answer format.\n";
+                continue;
+            }
+
+            string request = "POST_ANSWER|questionNumber=" +to_string(questionNumber) +"|answer=" + answer;
+
+            if (!sendLine(socketNumber, request) ||
+                !receiveResponse(socketNumber, receiveBuffer,false)) {
+                break;
+            }
+        }
+
+        //LOGOUT
+        else if (authenticated && choice == "5") {
+            if (!sendLine(socketNumber, "LOGOUT")) {
+                break;
+            }
+
+            optional<string> response =receiveLine(socketNumber, receiveBuffer);
+
+            if (!response.has_value()) {
+                break;
+            }
+
+            cout << *response << '\n';
+
+            if (*response == "200 OK") {
+                authenticated = false;
+            }
+        }
+        //QUIT after logging in
+        else if (authenticated && choice == "6") {
+            if (sendLine(socketNumber, "QUIT")) {
+                receiveResponse( socketNumber,receiveBuffer,false);
+            }
+            running = false;
+        }
+        //Invalid menu input
+        else {
+            cout << "300 message format error\n";
         }
     }
 
-
-    closesocket(s);
-    WSACleanup();
+    close(socketNumber);  //Release the TCP socket.
     return 0;
 }
-
-
-
-
-
