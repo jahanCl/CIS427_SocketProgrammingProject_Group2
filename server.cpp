@@ -56,11 +56,12 @@ struct Session {
     }
 };
 
+//What server needs to know about a response before sending it to client.
 struct Response {
-    vector<string> lines;
-    bool successful = false;
-    bool closeConnection = false;
-    int resourceId = 0;
+    vector<string> lines;         //what lines to send
+    bool successful = false;      //was command sucessfull
+    bool closeConnection = false;  //wheter to close client connection or no(QUIT)
+    int resourceId = 0;             //question or answer id of operation
 };
 
 class DiscussionBoard {
@@ -75,110 +76,94 @@ public:
         //Predefined user accounts for testing purposes.
         accountsList["Jahan"] = UserAccount{1,"Jahan","password123"};
         accountsList["Kieran"] = UserAccount{ 2,"Kieran", "Cookies21"};
+
+        //Predefined questions for testing purposes
+
     }
     //Checks a username and password and returns the matching account.
     const UserAccount* authenticate(const string& username,const string& password) const {
-        auto iterator = accountsList.find(username); //looks for username in 
+       //Search by the map's string key.
+    auto iterator = accountsList.find(username);
 
-                git switch -c my-feature-branch
-        git add .
-        git commit -m "Describe your changes"
-        git push -u origin my-feature-branch
+    //Username does not exist.
+    if (iterator == accountsList.end()) {
+        return nullptr;
     }
+    const UserAccount& account = iterator->second; //The map's value is found in UserAccount.
 
-    Question& addQuestion(
-        const string& author,
-        const string& title,
-        const string& body
-    ) {
-        Question question{
-            nextQuestionNumber++,
-            author,
-            title,
-            body,
-            {}
-        };
-
-        int number = question.questionNumber;
-
-        questionsList[number] = question;
-
-        return questionsList[number];
+    //Compare the stored password with the submitted password.
+    if (account.password != password) {
+        return nullptr;
     }
+    return &account;  //Return the matching account.
+   
+    };
 
+    //Add question to question list and assignes it unique number
+    Question& addQuestion(const string& author,const string& title,const string& body) {
+        //Create a question using the current id, then increment the id and 
+        //add user provided fields and leave {} empty for answer
+        Question question{ nextQuestionNumber++, author,title,body,{} };
+
+        int number = question.questionNumber;  //get the question number
+        questionsList[number] = question;      //add question in map at that number
+        return questionsList[number];         //return the question now referenced in map    
+    };
+
+    //Allows to look for question in list
     Question* findQuestion(int questionNumber) {
-        auto iterator =
-            questionsList.find(questionNumber);
+       // Find the map entry whose key matches the question number.
+        auto iterator = questionsList.find(questionNumber);
 
+        //If no matching question is found
         if (iterator == questionsList.end()) {
             return nullptr;
         }
-
-        return &iterator->second;
+    // The question was found. Return a pointer to the Question object
+    return &iterator->second;
     }
 
-    Answer addAnswer(
-        Question& question,
-        const string& author,
-        const string& body
-    ) {
-        Answer answer{
-            nextAnswerId++,
-            author,
-            body
-        };
+    //Add answer to question
+    Answer addAnswer(Question& question,const string& author,const string& body) {
+        //Increment current id so teh answer recive diffent id num
+        Answer answer{nextAnswerId++,author,body};
 
-        question.answers.push_back(answer);
-
-        return answer;
+        question.answers.push_back(answer); //Add answer to question answer list
+        return answer;    
     }
-
+    //Shows user waht was recored in question
     const map<int, Question>& getQuestions() const {
         return questionsList;
     }
 };
 
+//Writes timestamped server events to a log file.
+//Example: 2026-10-18T14:30:00 INFO Server listening on 0.0.0.0:6543
 class ServerLogger {
 private:
-    ofstream file;
+    ofstream file; //Used to Write entries to the log file.
 
+    // Creates the current local time in YYYY-MM-DDTHH:MM:SS format.
     string timestamp() {
-        time_t now = time(nullptr);
-        tm localTime{};
+        time_t now = time(nullptr);   //Get the current calendar time.
+        tm localTime{};  //Create structure for the date and time fields.
+        localtime_r(&now, &localTime);  //Convert the current time into local time.
+        char output[32];   //Temporarily holds formated timestamp
 
-        localtime_r(&now, &localTime);
-
-        char output[32];
-
-        strftime(
-            output,
-            sizeof(output),
-            "%Y-%m-%dT%H:%M:%S",
-            &localTime
-        );
-
-        return output;
+        //Format the local time as, 2026-10-18T14:30:00.
+        strftime(output,sizeof(output),"%Y-%m-%dT%H:%M:%S",&localTime);
+        return output;  //Convert the charc array into a C++ string and return it.
     }
 
 public:
-    explicit ServerLogger(
-        const string& fileName
-    ) {
-        file.open(fileName, ios::app);
+    //Opens the selected log file when a ServerLogger object is created.
+    explicit ServerLogger(const string& fileName) {
+        file.open(fileName, ios::app); //Adds new entired
     }
-
-    void log(
-        const string& level,
-        const string& message
-    ) {
-        file << timestamp()
-             << ' '
-             << level
-             << ' '
-             << message
-             << '\n';
-
-        file.flush();
+    // Writes one complete log entry.
+    void log(const string& level,const string& message) {
+        file << timestamp()<< ' '<< level << ' '<< message<< '\n';
+        file.flush();  //Force the entry to be written immediately instead of remaining in buffer
     }
 };
 
@@ -270,30 +255,27 @@ optional<map<string, string>> parseFields(const vector<string>& parts) {
 // ============================================================
 // Structured Response Helpers
 // ============================================================
+//Creates a successful response for one protocol lines.
 Response makeSuccess(const string& line, int resourceId = 0) {
-    Response response;
+    Response response;   //crear responce object 
+    response.lines.push_back(line);  //Add the protocol line to the response's list of outgoing lines.
 
-    response.lines.push_back(line);
-    response.successful = true;
-    response.resourceId = resourceId;
-
-    return response;
-}
-
+    response.successful = true;  //The application operation was successful
+    response.resourceId = resourceId; //Store the related question or answer ID. 
+    return response;        //Return the completed response to the command handler.
+} 
+//Creates a successful response containing multiple protocol lines.
 Response makeSuccess(const vector<string>& lines) {
     Response response;
-
-    response.lines = lines;
+    response.lines = lines;  //Copy all protocol lines into the response.
     response.successful = true;
-
     return response;
 }
 
+//Creates an unsuccessful single line response.
 Response makeError(const string& line) {
     Response response;
-
-    response.lines.push_back(line);
-
+    response.lines.push_back(line);  //Adds the error protocol line that will be sent to the client.
     return response;
 }
 
@@ -341,342 +323,223 @@ bool sendResponse(int socketNumber,const Response& response) {
 // ============================================================
 // Discussion-Board Command Processing
 // ============================================================
+//Processes one complete client request.
 Response processRequest( const string& request, Session& session,DiscussionBoard& board) {
+    //If request sent by client empty, error
     if (request.empty()) {
         return makeError("300 message format error");
     }
-
+    // Split the request at each | character.
     vector<string> parts = split(request, '|');
-
-    string command = parts.front();
+    string command = parts.front(); //Get the command name, Like LOGIN
 
     if (command == "LOGIN") {
+        //A client cannot log in again while already authenticated.
         if (session.authenticated) {
             return makeError("409 command not allowed in current session state");
         }
-
+        //Parse username=... and password=... fields.
         auto fields = parseFields(parts);
-
+        //Checks for missing fields
         if (!fields.has_value() ||parts.size() != 3 ||fields->size() != 2 ||
             fields->find("username") ==fields->end() ||
             fields->find("password") ==fields->end()) {
             return makeError("300 message format error");
         }
-
+        //Get the submitted field values.
         string username = fields->at("username");
         string password =fields->at("password");
 
+        //Checks for foramts errors 
         if (!validField(username) || !validField(password)) {
-            return makeError("300 message format error");
+            return makeError("415 non-ASCII content");
         }
 
-        const UserAccount* account =board.authenticate( username, password);
-
+        //Verifies the account credentials.
+        const UserAccount* account = board.authenticate( username, password);
+        //null pointer means the username or password was incorrect.
         if (account == nullptr) {
             return makeError( "410 Wrong username or password." );
         }
 
+        //Store the authenticated identity in this connection's session.
         session.authenticated = true;
         session.userId = account->userId;
         session.username = account->username;
 
+        //Return the authenticated user's ID.
         return makeSuccess(  "200 OK|userId=" + to_string(account->userId) );
     }
     //LOGOUT
     if (command == "LOGOUT") {
+        //Not fields allowed in LOGOUT
         if (parts.size() != 1) {
             return makeError( "300 message format error");
         }
-
+        //The client cannot log out before logging in.
         if (!session.authenticated) {
             return makeError("401 You are not currently logged in, login first.");
         }
+        //Clear login information but leave the TCP connection open.
         session.logout();
         return makeSuccess("200 OK");
     }
     //VIEW_QUESTIONS
     if (command == "VIEW_QUESTIONS") {
+        //NO fields found
         if (parts.size() != 1) {
-            return makeError(
-                "300 message format error"
-            );
+            return makeError("300 message format error");
         }
-
+        //Viewing discussion data requires login.
         if (!session.authenticated) {
-            return makeError(
-                "401 You are not currently logged in, login first."
-            );
+            return makeError("401 You are not currently logged in, login first.");
         }
 
-        vector<string> lines;
+        vector<string> lines;  //Builds a multiline response.
+        lines.push_back("200 OK"); //First line is the success status.
 
-        lines.push_back("200 OK");
+        //Second line tells the client how many questions follow.
+        lines.push_back("COUNT|value=" +to_string( board.getQuestions().size()));
 
-        lines.push_back(
-            "COUNT|value=" +
-            to_string(
-                board.getQuestions().size()
-            )
-        );
-
-        for (const auto& pair :
-             board.getQuestions()) {
-
-            const Question& question =
-                pair.second;
-
-            lines.push_back(
-                "QUESTION|questionNumber=" +
-                to_string(
-                    question.questionNumber
-                ) +
+        //Add one summary line for each stored question.
+        for (const auto& pair :board.getQuestions()) {
+            const Question& question = pair.second;
+            lines.push_back( "QUESTION|questionNumber=" +
+                to_string(question.questionNumber) +
                 "|author=" +
                 question.author +
                 "|title=" +
                 question.title
             );
         }
-
+        //END tells the client where the multiline response finishes.
         lines.push_back("END");
-
         return makeSuccess(lines);
     }
-
+    //VIEW_ANSWER
     if (command == "VIEW_ANSWER") {
+        //Viewing a discussion requires login.
         if (!session.authenticated) {
-            return makeError(
-                "401 You are not currently logged in, login first."
-            );
+            return makeError( "401 You are not currently logged in, login first.");
         }
+        // Parse questionNumber=...
+        auto fields =parseFields(parts);
 
-        auto fields =
-            parseFields(parts);
+        if (!fields.has_value() || parts.size() != 2 ||
+            fields->size() != 1 ||fields->find("questionNumber") == fields->end()) {
 
-        if (!fields.has_value() ||
-            parts.size() != 2 ||
-            fields->size() != 1 ||
-            fields->find("questionNumber") ==
-                fields->end()) {
-
-            return makeError(
-                "300 message format error"
-            );
+            return makeError("300 message format error");
         }
 
         int questionNumber = 0;
-
-        if (!parsePositiveInteger(
-                fields->at(
-                    "questionNumber"
-                ),
-                questionNumber)) {
-
-            return makeError(
-                "300 message format error"
-            );
+         //the question number is positive integer.
+        if (!parsePositiveInteger(fields->at("questionNumber"),questionNumber)) {
+            return makeError("300 message format error");
         }
-
-        Question* question =
-            board.findQuestion(
-                questionNumber
-            );
-
+        //Search server data for the selected question.
+        Question* question = board.findQuestion(questionNumber);
+        //nullptr == question not found
         if (question == nullptr) {
-            return makeError(
-                "404 question not found"
-            );
+            return makeError( "404 question not found");
         }
 
-        vector<string> lines;
+        vector<string> lines; //Build a multiline response containing the question and answers.
 
         lines.push_back("200 OK");
-
-        lines.push_back(
-            "QUESTION|questionNumber=" +
-            to_string(
-                question->questionNumber
-            ) +
-            "|author=" +
-            question->author +
-            "|title=" +
-            question->title +
-            "|body=" +
-            question->body +
-            "|answerCount=" +
-            to_string(
-                question->answers.size()
-            )
+        //Add complete question information and answer count.
+        lines.push_back("QUESTION|questionNumber=" +
+            to_string(question->questionNumber) +
+            "|author=" + question->author +
+            "|title=" + question->title +
+            "|body=" + question->body +
+            "|answerCount=" + to_string(question->answers.size())
         );
 
-        for (const Answer& answer :
-             question->answers) {
-
-            lines.push_back(
-                "ANSWER|answerId=" +
-                to_string(
-                    answer.answerId
-                ) +
-                "|author=" +
-                answer.author +
-                "|body=" +
-                answer.body
+        //Add one response line for every associated answer.
+        for (const Answer& answer :question->answers) {
+            lines.push_back("ANSWER|answerId=" +to_string(answer.answerId) +
+                "|author=" + answer.author +
+                "|body=" + answer.body
             );
         }
-
+        // Mark the end of the complete response.
         lines.push_back("END");
-
         return makeSuccess(lines);
     }
-
+    //POST_QUESTION
     if (command == "POST_QUESTION") {
         if (!session.authenticated) {
-            return makeError(
-                "401 You are not currently logged in, login first."
-            );
+            return makeError("401 You are not currently logged in, login first.");
         }
 
-        auto fields =
-            parseFields(parts);
+        auto fields = parseFields(parts);
 
-        if (!fields.has_value() ||
-            parts.size() != 3 ||
-            fields->size() != 2 ||
-            fields->find("title") ==
-                fields->end() ||
-            fields->find("body") ==
-                fields->end()) {
-
-            return makeError(
-                "300 message format error"
-            );
+        if (!fields.has_value() ||parts.size() != 3 ||fields->size() != 2 ||
+            fields->find("title") ==fields->end() ||
+            fields->find("body") ==fields->end()) {
+            return makeError("300 message format error" );
         }
 
-        string title =
-            fields->at("title");
+        string title = fields->at("title");
+        string body = fields->at("body");
 
-        string body =
-            fields->at("body");
-
-        if (!validField(title) ||
-            !validField(body)) {
-
-            return makeError(
-                "300 message format error"
-            );
+        if (!validField(title) || !validField(body)) {
+            return makeError("300 message format error" );
         }
 
-        Question& question =
-            board.addQuestion(
-                session.username,
-                title,
-                body
-            );
-
-        return makeSuccess(
-            "200 OK|questionNumber=" +
-            to_string(
-                question.questionNumber
-            ),
-            question.questionNumber
-        );
+        Question& question = board.addQuestion(session.username,title,body);
+        return makeSuccess( "200 OK|questionNumber=" + to_string(question.questionNumber),
+        question.questionNumber);
     }
-
+    //POST_ANSWER
     if (command == "POST_ANSWER") {
         if (!session.authenticated) {
-            return makeError(
-                "401 You are not currently logged in, login first."
-            );
+            return makeError( "401 You are not currently logged in, login first.");
         }
 
-        auto fields =
-            parseFields(parts);
+        auto fields = parseFields(parts);
 
-        if (!fields.has_value() ||
-            parts.size() != 3 ||
-            fields->size() != 2 ||
-            fields->find("questionNumber") ==
-                fields->end() ||
-            fields->find("answer") ==
-                fields->end()) {
-
-            return makeError(
-                "300 message format error"
-            );
+        if (!fields.has_value() ||parts.size() != 3 ||fields->size() != 2 ||
+            fields->find("questionNumber") ==fields->end() ||
+            fields->find("answer") ==fields->end()) {
+            return makeError("300 message format error");
         }
 
         int questionNumber = 0;
 
-        if (!parsePositiveInteger(
-                fields->at(
-                    "questionNumber"
-                ),
-                questionNumber)) {
+        if (!parsePositiveInteger(fields->at("questionNumber"),questionNumber)) {
 
-            return makeError(
-                "300 message format error"
-            );
+            return makeError("300 message format error" );
         }
 
-        string answerBody =
-            fields->at("answer");
-
+        string answerBody = fields->at("answer");
+ 
         if (!validField(answerBody)) {
-            return makeError(
-                "300 message format error"
-            );
+            return makeError("300 message format error");
         }
 
-        Question* question =
-            board.findQuestion(
-                questionNumber
-            );
-
+        Question* question = board.findQuestion(questionNumber);
         if (question == nullptr) {
-            return makeError(
-                "404 question not found"
-            );
+            return makeError("404 question not found");
         }
 
-        Answer answer =
-            board.addAnswer(
-                *question,
-                session.username,
-                answerBody
-            );
+        Answer answer = board.addAnswer(*question,session.username,answerBody);
 
-        return makeSuccess(
-            "200 OK|answerId=" +
-            to_string(
-                answer.answerId
-            ) +
-            "|questionNumber=" +
-            to_string(
-                questionNumber
-            ),
-            answer.answerId
-        );
+        return makeSuccess("200 OK|answerId=" +to_string(answer.answerId) +
+            "|questionNumber=" +to_string(questionNumber), answer.answerId);
     }
-
+    //QUIT
     if (command == "QUIT") {
         if (parts.size() != 1) {
-            return makeError(
-                "300 message format error"
-            );
+            return makeError("300 message format error");
         }
-
         session.logout();
-
-        Response response =
-            makeSuccess("200 OK");
-
+        Response response =makeSuccess("200 OK");
         response.closeConnection = true;
-
         return response;
     }
 
-    return makeError(
-        "400 unknown command"
-    );
+    return makeError( "400 unknown command");
 }
 
 // ============================================================
@@ -706,7 +569,6 @@ void handleClient(int clientSocket,const string& clientId,DiscussionBoard& board
                 continue;
             }
             logger.log("WARN", clientId +" receive error=" +strerror(errno));
-
             break;
         }
 
@@ -740,9 +602,7 @@ void handleClient(int clientSocket,const string& clientId,DiscussionBoard& board
             }
 
             size_t framedSize = newline + 1;
-
             string request = receiveBuffer.substr( 0,  newline );
-
             receiveBuffer.erase( 0,  framedSize );
 
             if (framedSize > MAX_LINE) {
@@ -813,28 +673,16 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    ServerLogger logger(
-        "server.log"
-    );
+    ServerLogger logger("server.log");
 
     DiscussionBoard board;
 
-    int serverSocket = socket(
-        AF_INET,
-        SOCK_STREAM,
-        IPPROTO_TCP
-    );
-
-    if (serverSocket < 0) {
-        cerr << "socket failed: "
-             << strerror(errno)
-             << '\n';
-
+    int serverSocket = socket(AF_INET, SOCK_STREAM,IPPROTO_TCP);
+    if (serverSocket < 0) {cerr << "socket failed: "<< strerror(errno)<< '\n';
         return 1;
     }
 
     int reuseAddress = 1;
-
     setsockopt(
         serverSocket,
         SOL_SOCKET,
@@ -845,102 +693,52 @@ int main(int argc, char* argv[]) {
 
     sockaddr_in serverAddress{};
 
-    serverAddress.sin_family =
-        AF_INET;
+    serverAddress.sin_family =AF_INET;
 
-    serverAddress.sin_addr.s_addr =
-        htonl(INADDR_ANY);
+    serverAddress.sin_addr.s_addr =htonl(INADDR_ANY);
 
     serverAddress.sin_port =
-        htons(
-            static_cast<uint16_t>(
-                port
-            )
-        );
+        htons(static_cast<uint16_t>(port));
 
-    if (bind(
-            serverSocket,
-            reinterpret_cast<sockaddr*>(
-                &serverAddress
-            ),
-            sizeof(serverAddress)) < 0) {
+    if (bind(serverSocket,reinterpret_cast<sockaddr*>(&serverAddress),
+        sizeof(serverAddress)) < 0) {
 
-        cerr << "bind failed: "
-             << strerror(errno)
-             << '\n';
-
+        cerr << "bind failed: "<< strerror(errno)<< '\n';
         close(serverSocket);
-
         return 1;
     }
 
-    if (listen(
-            serverSocket,
-            MAX_PENDING) < 0) {
+    if (listen(serverSocket,MAX_PENDING) < 0) {
 
-        cerr << "listen failed: "
-             << strerror(errno)
-             << '\n';
-
+        cerr << "listen failed: "<< strerror(errno)<< '\n';
         close(serverSocket);
-
         return 1;
     }
 
-    cout << "Server listening on port "
-         << port
-         << '\n';
+    cout << "Server listening on port " << port<< '\n';
 
-    logger.log(
-        "INFO",
-        "Server startup"
-    );
+    logger.log("INFO","Server startup");
 
-    logger.log(
-        "INFO",
-        "Server listening on "
-        "0.0.0.0:" +
-        to_string(port)
-    );
+    logger.log("INFO","Server listening on ""0.0.0.0:" +to_string(port));
 
     int nextClientNumber = 1;
 
-    while (true) {
-        sockaddr_in clientAddress{};
+    while (true) {sockaddr_in clientAddress{};
 
-        socklen_t clientAddressLength =
-            sizeof(clientAddress);
+        socklen_t clientAddressLength =sizeof(clientAddress);
 
-        int clientSocket = accept(
-            serverSocket,
-            reinterpret_cast<sockaddr*>(
-                &clientAddress
-            ),
-            &clientAddressLength
-        );
+        int clientSocket = accept(serverSocket,reinterpret_cast<sockaddr*>(&clientAddress),
+            &clientAddressLength);
 
         if (clientSocket < 0) {
             if (errno == EINTR) {
                 continue;
             }
-
-            logger.log(
-                "ERROR",
-                "accept failed=" +
-                string(
-                    strerror(errno)
-                )
-            );
-
+            logger.log("ERROR","accept failed=" +string(strerror(errno)));
             break;
         }
 
-        string clientId =
-            "client-" +
-            to_string(
-                nextClientNumber++
-            );
-
+        string clientId = "client-" + to_string(nextClientNumber++);
         char addressText[
             INET_ADDRSTRLEN
         ]{};
@@ -952,27 +750,11 @@ int main(int argc, char* argv[]) {
             sizeof(addressText)
         );
 
-        logger.log(
-            "INFO",
-            clientId +
-            " connected from " +
-            addressText
-        );
-
-        handleClient(
-            clientSocket,
-            clientId,
-            board,
-            logger
-        );
+        logger.log("INFO", clientId +" connected from " + addressText);
+        handleClient(clientSocket,clientId,board,logger);
     }
 
     close(serverSocket);
-
-    logger.log(
-        "INFO",
-        "Server shutdown"
-    );
-
+    logger.log("INFO","Server shutdown");
     return 0;
-}
+};
