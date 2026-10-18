@@ -353,6 +353,8 @@ int main(int argc, char * argv[]) {
                 if(sendProtocolMessage(s, cmd)){
                     if(receiveResponse(s)){
                         isUserAuthenticated= true;
+                    }else {
+                        cout << "Login Rejected. Please try again.\n" << endl;
                     }
                 }
             }
