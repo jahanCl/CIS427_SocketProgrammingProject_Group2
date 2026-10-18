@@ -73,3 +73,5 @@
 2026-10-18T19:30:27 INFO client-1 request=QUIT
 2026-10-18T19:30:27 INFO client-1 command=QUIT outcome=success
 2026-10-18T19:30:27 INFO client-1 disconnected gracefully
+2026-10-18T22:53:50 INFO Server startup
+2026-10-18T22:53:50 INFO Server listening on 0.0.0.0:6543
