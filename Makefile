@@ -16,4 +16,6 @@ server: server.o
 	$(CC) $(CFLAGS) -c $*.c
 
 # clean out the dross
-clean:	-rm client server *.o core
+clean:-rm client server *.o core
+
+.PHONY: all clean

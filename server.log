@@ -75,3 +75,69 @@
 2026-10-18T19:30:27 INFO client-1 disconnected gracefully
 2026-10-18T22:53:50 INFO Server startup
 2026-10-18T22:53:50 INFO Server listening on 0.0.0.0:6543
+2026-10-18T23:15:41 INFO Server startup
+2026-10-18T23:15:41 INFO Server listening on 0.0.0.0:6543
+2026-10-18T23:18:32 INFO client-1 connected from 127.0.0.1
+2026-10-18T23:30:03 INFO client-1 request=LOGIN
+2026-10-18T23:30:03 INFO client-1 command=LOGIN outcome=success
+2026-10-18T23:35:56 INFO client-1 request=POST_QUESTION
+2026-10-18T23:35:56 INFO client-1 command=POST_QUESTION outcome=success
+2026-10-18T23:38:42 INFO client-1 request=VIEW_ANSWER
+2026-10-18T23:38:42 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-10-18T23:38:45 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T23:38:45 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T23:44:22 INFO client-1 request=POST_QUESTION
+2026-10-18T23:44:22 INFO client-1 command=POST_QUESTION outcome=success
+2026-10-18T23:44:27 INFO client-1 request=VIEW_QUESTIONS
+2026-10-18T23:44:27 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-18T23:45:43 INFO client-1 request=VIEW_ANSWER
+2026-10-18T23:45:43 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-10-18T23:53:54 INFO client-1 request=POST_ANSWER
+2026-10-18T23:53:54 INFO client-1 command=POST_ANSWER outcome=success
+2026-10-19T00:13:53 INFO client-1 request=LOGOUT
+2026-10-19T00:13:53 INFO client-1 command=LOGOUT outcome=success
+2026-10-19T00:14:07 INFO client-1 request=LOGIN
+2026-10-19T00:14:07 WARN client-1 command=LOGIN outcome=error
+2026-10-19T00:20:05 INFO client-1 request=LOGIN
+2026-10-19T00:20:05 INFO client-1 command=LOGIN outcome=success
+2026-10-19T00:22:47 INFO client-1 request=VIEW_QUESTIONS
+2026-10-19T00:22:47 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-19T00:33:43 INFO client-1 request=VIEW_QUESTIONS
+2026-10-19T00:33:43 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-10-19T00:33:57 INFO client-1 request=VIEW_ANSWER
+2026-10-19T00:33:57 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-10-19T00:40:00 INFO Server startup
+2026-10-19T00:40:00 INFO Server listening on 0.0.0.0:6543
+2026-10-19T00:41:11 INFO Server startup
+2026-10-19T00:41:11 INFO Server listening on 0.0.0.0:6543
+2026-10-19T00:42:12 INFO Server startup
+2026-10-19T00:42:12 INFO Server listening on 0.0.0.0:6543
+2026-10-19T00:48:08 INFO client-1 connected from 127.0.0.1
+2026-10-19T00:49:09 WARN client-1 disconnected unexpectedly
+2026-10-19T00:51:45 INFO client-2 connected from 127.0.0.1
+2026-10-19T00:51:50 WARN client-2 disconnected unexpectedly
+2026-10-19T01:20:40 INFO client-3 connected from 127.0.0.1
+2026-10-19T01:20:48 INFO client-3 request=LOGIN
+2026-10-19T01:20:48 INFO client-3 command=LOGIN outcome=success
+2026-10-19T01:20:53 INFO client-3 request=LOGOUT
+2026-10-19T01:20:53 INFO client-3 command=LOGOUT outcome=success
+2026-10-19T01:20:55 INFO client-3 request=QUIT
+2026-10-19T01:20:55 INFO client-3 command=QUIT outcome=success
+2026-10-19T01:20:55 INFO client-3 disconnected gracefully
+2026-11-02T23:16:14 INFO Server startup
+2026-11-02T23:16:14 INFO Server listening on 0.0.0.0:6543
+2026-11-02T23:16:38 INFO client-1 connected from 127.0.0.1
+2026-11-02T23:17:10 INFO client-1 request=LOGIN
+2026-11-02T23:17:10 INFO client-1 command=LOGIN outcome=success
+2026-11-02T23:17:12 INFO client-1 request=VIEW_QUESTIONS
+2026-11-02T23:17:12 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-02T23:17:13 INFO client-1 request=VIEW_QUESTIONS
+2026-11-02T23:17:13 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-02T23:17:18 INFO client-1 request=VIEW_ANSWER
+2026-11-02T23:17:18 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-11-02T23:17:24 INFO client-1 request=POST_QUESTION
+2026-11-02T23:17:24 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-02T23:17:30 INFO client-1 request=VIEW_ANSWER
+2026-11-02T23:17:30 WARN client-1 command=VIEW_ANSWER outcome=error
+2026-11-02T23:17:31 INFO client-1 request=VIEW_QUESTIONS
+2026-11-02T23:17:31 INFO client-1 command=VIEW_QUESTIONS outcome=success
