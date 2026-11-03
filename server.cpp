@@ -9,6 +9,8 @@
 #include <netinet/in.h>
 #include <optional>
 #include <string>
+#include <thread>
+#include <functional>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -748,7 +750,8 @@ int main(int argc, char* argv[]) {
         );
 
         logger.log("INFO", clientId +" connected from " + addressText);
-        handleClient(clientSocket,clientId,board,logger);
+        thread clientThread(handleClient, clientSocket, clientId, ref(board), ref(logger));
+        clientThread.detach();
     }
 
     close(serverSocket);
