@@ -113,3 +113,57 @@
 2026-11-03T01:18:54 INFO client-1 command=VIEW_QUESTIONS outcome=success
 2026-11-03T01:19:12 INFO client-1 request=VIEW_ANSWER
 2026-11-03T01:19:12 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-11-03T01:39:19 INFO Server startup
+2026-11-03T01:39:19 INFO Server listening on 0.0.0.0:6543
+2026-11-03T01:39:30 INFO client-1 connected from 127.0.0.1
+2026-11-03T01:39:35 INFO client-1 request=LOGIN
+2026-11-03T01:39:35 WARN client-1 command=LOGIN outcome=error
+2026-11-03T01:39:43 INFO client-1 request=LOGIN
+2026-11-03T01:39:43 INFO client-1 command=LOGIN outcome=success
+2026-11-03T01:39:55 INFO client-1 request=POST_QUESTION
+2026-11-03T01:39:55 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-03T01:40:00 INFO client-1 request=POST_ANSWER
+2026-11-03T01:40:00 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T01:40:02 INFO client-1 request=VIEW_QUESTIONS
+2026-11-03T01:40:02 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-03T01:40:10 INFO client-1 request=VIEW_ANSWER
+2026-11-03T01:40:10 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-11-03T01:47:45 INFO client-1 request=QUIT
+2026-11-03T01:47:45 INFO client-1 command=QUIT outcome=success
+2026-11-03T01:47:45 INFO client-1 disconnected gracefully
+2026-11-03T01:48:31 INFO Server startup
+2026-11-03T01:48:31 INFO Server listening on 0.0.0.0:6543
+2026-11-03T01:48:44 INFO client-1 connected from 127.0.0.1
+2026-11-03T01:48:52 INFO client-1 request=LOGIN
+2026-11-03T01:48:52 INFO client-1 command=LOGIN outcome=success
+2026-11-03T01:49:03 INFO client-1 request=POST_QUESTION
+2026-11-03T01:49:03 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-03T01:49:25 INFO client-1 request=POST_QUESTION
+2026-11-03T01:49:25 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-03T01:49:34 INFO client-1 request=POST_ANSWER
+2026-11-03T01:49:34 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T01:49:43 INFO client-1 request=POST_ANSWER
+2026-11-03T01:49:43 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T01:50:03 INFO client-1 request=VIEW_ANSWER
+2026-11-03T01:50:03 INFO client-1 command=VIEW_ANSWER outcome=success
+2026-11-03T01:59:17 INFO Server startup
+2026-11-03T01:59:17 INFO Server listening on 0.0.0.0:6543
+2026-11-03T01:59:24 INFO client-1 connected from 127.0.0.1
+2026-11-03T01:59:33 INFO client-1 request=LOGIN
+2026-11-03T01:59:33 WARN client-1 command=LOGIN outcome=error
+2026-11-03T01:59:41 INFO client-1 request=LOGIN
+2026-11-03T01:59:41 INFO client-1 command=LOGIN outcome=success
+2026-11-03T01:59:51 INFO client-1 request=POST_QUESTION
+2026-11-03T01:59:51 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-03T02:00:05 INFO client-1 request=POST_QUESTION
+2026-11-03T02:00:05 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-03T02:00:11 INFO client-1 request=POST_ANSWER
+2026-11-03T02:00:11 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T02:00:17 INFO client-1 request=POST_ANSWER
+2026-11-03T02:00:17 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T02:00:22 INFO client-1 request=POST_ANSWER
+2026-11-03T02:00:22 INFO client-1 command=POST_ANSWER outcome=success
+2026-11-03T02:00:24 INFO client-1 request=VIEW_QUESTIONS
+2026-11-03T02:00:24 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-03T02:00:44 INFO client-1 request=VIEW_ANSWER
+2026-11-03T02:00:44 INFO client-1 command=VIEW_ANSWER outcome=success

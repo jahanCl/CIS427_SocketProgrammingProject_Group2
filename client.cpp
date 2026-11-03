@@ -242,7 +242,7 @@ bool receiveResponse(int socketNumber,string& receiveBuffer,bool mayBeMultiline)
 
         cout << *line << '\n';   //Display COUNT, QUESTION, ANSWER, or END.
 
-        if (*line == "END") {  //END marks the response boundary.
+        if (*line == "-------") {  //END marks the response boundary.
             return true;
         }
     }

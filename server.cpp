@@ -404,16 +404,13 @@ Response processRequest( const string& request, Session& session,DiscussionBoard
         //Add one summary line for each stored question.
         for (const auto& pair :board.getQuestions()) {
             const Question& question = pair.second;
-            lines.push_back( "QUESTION|questionNumber=" +
-                to_string(question.questionNumber) +
-                "|author=" +
-                question.author +
-                "|title=" +
-                question.title
-            );
+            lines.push_back("Question Number: " + to_string(question.questionNumber));
+            lines.push_back("Author: " + question.author);
+            lines.push_back("Question: " + question.title);
+            lines.push_back("=======");
         }
-        //END tells the client where the multiline response finishes.
-        lines.push_back("END");
+        //------- tells the client where the multiline response finishes.
+        lines.push_back("-------");
         return makeSuccess(lines);
     }
     //VIEW_ANSWER
@@ -451,23 +448,19 @@ Response processRequest( const string& request, Session& session,DiscussionBoard
         lines.push_back("Title: " + question->title);
         lines.push_back("Question: " + question->body);
         lines.push_back("Number of Answers: " + to_string(question->answers.size()));
-        /*lines.push_back("QUESTION|questionNumber=" +
-            to_string(question->questionNumber) +
-            "|author=" + question->author +
-            "|title=" + question->title +
-            "|body=" + question->body +
-            "|answerCount=" + to_string(question->answers.size())
-        );*/
-
+        if(question->answers.size() != 0){
+            lines.push_back("Answers: ");
+        }
         //Add one response line for every associated answer.
         for (const Answer& answer :question->answers) {
-            lines.push_back("ANSWER|answerId=" +to_string(answer.answerId) +
-                "|author=" + answer.author +
-                "|body=" + answer.body
-            );
+            lines.push_back("=======");
+            lines.push_back("Author: " + answer.author);
+            lines.push_back("Answer: "+ answer.body);
+            lines.push_back("=======");
+            
         }
         // Mark the end of the complete response.
-        lines.push_back("END");
+        lines.push_back("-------");
         return makeSuccess(lines);
     }
     //POST_QUESTION
