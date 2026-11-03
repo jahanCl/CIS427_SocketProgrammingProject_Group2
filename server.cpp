@@ -447,13 +447,17 @@ Response processRequest( const string& request, Session& session,DiscussionBoard
 
         lines.push_back("200 OK");
         //Add complete question information and answer count.
-        lines.push_back("QUESTION|questionNumber=" +
+        lines.push_back("Author: " + question->author);
+        lines.push_back("Title: " + question->title);
+        lines.push_back("Question: " + question->body);
+        lines.push_back("Number of Answers: " + to_string(question->answers.size()));
+        /*lines.push_back("QUESTION|questionNumber=" +
             to_string(question->questionNumber) +
             "|author=" + question->author +
             "|title=" + question->title +
             "|body=" + question->body +
             "|answerCount=" + to_string(question->answers.size())
-        );
+        );*/
 
         //Add one response line for every associated answer.
         for (const Answer& answer :question->answers) {
