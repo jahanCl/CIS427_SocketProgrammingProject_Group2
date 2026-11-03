@@ -242,7 +242,7 @@ bool receiveResponse(int socketNumber,string& receiveBuffer,bool mayBeMultiline)
 
         cout << *line << '\n';   //Display COUNT, QUESTION, ANSWER, or END.
 
-        if (*line == "-------") {  //END marks the response boundary.
+        if (*line == "-------") {  //------- marks the response boundary.
             return true;
         }
     }
@@ -310,6 +310,10 @@ int main(int argc, char* argv[]) {
         string choice;
         getline(cin, choice);  //Read the complete menu selection.
 
+        while(choice != "1" && choice != "2" && choice != "3" && choice != "4" && choice != "5" && choice != "6"){
+            cout << "Invalid Input please enter valid choice: ";
+            getline(cin, choice);
+        }
         //LOGIN
         if (!authenticated && choice == "1") {
             string username;

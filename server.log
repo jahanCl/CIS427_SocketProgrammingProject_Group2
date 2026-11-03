@@ -172,3 +172,27 @@
 2026-10-18T22:53:50 INFO Server startup
 2026-10-18T22:53:50 INFO Server listening on 0.0.0.0:6543
 >>>>>>> refs/remotes/origin/fix-logic
+2026-11-03T15:52:09 INFO Server startup
+2026-11-03T15:52:09 INFO Server listening on 0.0.0.0:6543
+2026-11-03T15:52:18 INFO client-1 connected from 127.0.0.1
+2026-11-03T15:53:18 WARN client-1 disconnected unexpectedly
+2026-11-03T15:53:40 INFO client-2 connected from 127.0.0.1
+2026-11-03T15:53:48 INFO client-2 request=LOGIN
+2026-11-03T15:53:48 INFO client-2 command=LOGIN outcome=success
+2026-11-03T15:53:55 INFO client-2 request=VIEW_QUESTIONS
+2026-11-03T15:53:55 INFO client-2 command=VIEW_QUESTIONS outcome=success
+2026-11-03T15:54:20 INFO client-2 request=POST_QUESTION
+2026-11-03T15:54:20 INFO client-2 command=POST_QUESTION outcome=success
+2026-11-03T15:55:01 INFO client-2 request=VIEW_QUESTIONS
+2026-11-03T15:55:01 INFO client-2 command=VIEW_QUESTIONS outcome=success
+2026-11-03T15:55:45 INFO client-2 request=QUIT
+2026-11-03T15:55:45 INFO client-2 command=QUIT outcome=success
+2026-11-03T15:55:45 INFO client-2 disconnected gracefully
+2026-11-03T15:56:00 INFO client-3 connected from 127.0.0.1
+2026-11-03T15:56:08 INFO client-3 request=LOGIN
+2026-11-03T15:56:08 INFO client-3 command=LOGIN outcome=success
+2026-11-03T15:56:10 INFO client-3 request=VIEW_QUESTIONS
+2026-11-03T15:56:10 INFO client-3 command=VIEW_QUESTIONS outcome=success
+2026-11-03T15:57:32 INFO client-3 request=QUIT
+2026-11-03T15:57:32 INFO client-3 command=QUIT outcome=success
+2026-11-03T15:57:32 INFO client-3 disconnected gracefully
