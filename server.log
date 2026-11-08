@@ -253,3 +253,66 @@
 2026-11-03T19:42:28 INFO client-3 request=QUIT
 2026-11-03T19:42:28 INFO client-3 command=QUIT outcome=success
 2026-11-03T19:42:28 INFO client-3 disconnected gracefully
+2026-11-08T18:31:06 INFO Server startup
+2026-11-08T18:31:06 INFO Server listening on 0.0.0.0:6543
+2026-11-08T18:31:32 INFO Server startup
+2026-11-08T18:31:32 INFO Server listening on 0.0.0.0:6543
+2026-11-08T18:32:00 INFO client-1 connected from 127.0.0.1
+2026-11-08T18:32:09 INFO client-1 request=LOGIN
+2026-11-08T18:32:09 INFO client-1 command=LOGIN outcome=success
+2026-11-08T18:32:14 INFO client-1 request=VIEW_QUESTIONS
+2026-11-08T18:32:14 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-08T18:32:21 INFO client-1 request=VIEW_QUESTIONS
+2026-11-08T18:32:21 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-08T18:32:23 INFO client-1 request=VIEW_QUESTIONS
+2026-11-08T18:32:23 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-08T18:32:35 INFO client-1 request=POST_QUESTION
+2026-11-08T18:32:35 INFO client-1 command=POST_QUESTION outcome=success
+2026-11-08T18:32:41 INFO client-1 request=VIEW_QUESTIONS
+2026-11-08T18:32:41 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-08T18:50:07 WARN client-1 disconnected unexpectedly
+2026-11-08T18:52:21 INFO Server startup
+2026-11-08T18:52:21 INFO Server listening on 0.0.0.0:6543
+2026-11-08T18:52:34 INFO client-1 connected from 127.0.0.1
+2026-11-08T18:52:39 INFO client-1 request=QUIT
+2026-11-08T18:52:39 INFO client-1 command=QUIT outcome=success
+2026-11-08T18:52:39 INFO client-1 disconnected gracefully
+2026-11-08T18:54:06 INFO client-2 connected from 127.0.0.1
+2026-11-08T18:55:41 WARN client-2 disconnected unexpectedly
+2026-11-08T18:56:24 INFO client-3 connected from 127.0.0.1
+2026-11-08T18:56:33 WARN client-3 disconnected unexpectedly
+2026-11-08T18:56:53 INFO client-4 connected from 127.0.0.1
+2026-11-08T18:57:07 INFO client-4 request=LOGIN
+2026-11-08T18:57:07 INFO client-4 command=LOGIN outcome=success
+2026-11-08T18:57:13 INFO client-4 request=VIEW_QUESTIONS
+2026-11-08T18:57:13 INFO client-4 command=VIEW_QUESTIONS outcome=success
+2026-11-08T18:57:25 INFO client-4 request=QUIT
+2026-11-08T18:57:25 INFO client-4 command=QUIT outcome=success
+2026-11-08T18:57:25 INFO client-4 disconnected gracefully
+2026-11-08T18:57:40 INFO client-5 connected from 127.0.0.1
+2026-11-08T18:57:40 WARN client-5 disconnected unexpectedly
+2026-11-08T18:59:11 INFO client-6 connected from 127.0.0.1
+2026-11-08T18:59:11 WARN client-6 disconnected unexpectedly
+2026-11-08T19:24:47 INFO client-7 connected from 127.0.0.1
+2026-11-08T19:25:01 INFO client-7 request=LOGIN
+2026-11-08T19:25:01 INFO client-7 command=LOGIN outcome=success
+2026-11-08T19:25:13 INFO client-7 request=LOGOUT
+2026-11-08T19:25:13 INFO client-7 command=LOGOUT outcome=success
+2026-11-08T19:25:18 WARN client-7 disconnected unexpectedly
+2026-11-08T19:26:17 INFO client-8 connected from 127.0.0.1
+2026-11-08T19:26:27 WARN client-8 disconnected unexpectedly
+2026-11-08T19:27:18 INFO client-9 connected from 127.0.0.1
+2026-11-08T19:27:26 INFO client-9 request=LOGIN
+2026-11-08T19:27:26 WARN client-9 command=LOGIN outcome=error
+2026-11-08T19:28:07 INFO client-9 request=LOGIN
+2026-11-08T19:28:07 WARN client-9 command=LOGIN outcome=error
+2026-11-08T19:28:16 INFO client-9 request=LOGIN
+2026-11-08T19:28:16 INFO client-9 command=LOGIN outcome=success
+2026-11-08T19:28:26 INFO client-9 request=POST_QUESTION
+2026-11-08T19:28:26 INFO client-9 command=POST_QUESTION outcome=success
+2026-11-08T19:28:29 INFO client-9 request=VIEW_QUESTIONS
+2026-11-08T19:28:29 INFO client-9 command=VIEW_QUESTIONS outcome=success
+2026-11-08T19:28:49 INFO client-9 request=POST_ANSWER
+2026-11-08T19:28:49 INFO client-9 command=POST_ANSWER outcome=success
+2026-11-08T19:28:59 INFO client-9 request=VIEW_ANSWER
+2026-11-08T19:28:59 INFO client-9 command=VIEW_ANSWER outcome=success
