@@ -22,10 +22,6 @@
 
 using namespace std;
 
-// ============================================================
-// Client Socket Handler
-// ============================================================
-
 //Adds the required newline delimiter and sends one protocol line.
 bool sendLine(int socketNumber,const string& line) {
     string framedLine = line + "\n";
@@ -193,19 +189,6 @@ void displayAuthenticatedMenu() {
          << "Selection: ";
 }
 
-
-// Displays a prompt and reads one complete input line.
-// Returns false if standard input ends or fails.
-bool readInput(const string& prompt, string& output) {
-    cout << prompt; // Display what the user should enter.
-
-    if (!getline(cin, output)) { // Check whether input was successfully read.
-        cout << "\nInput ended. Closing client.\n";
-        return false;
-    }
-
-    return true; // A complete input line was read.
-}
 // ============================================================
 // Main Client Flow
 // ============================================================
@@ -238,49 +221,30 @@ int main(int argc, char* argv[]) {
     string receiveBuffer;       //Stores unused TCP response bytes.
 
     while (running) {
-        if (authenticated) { displayAuthenticatedMenu();}
-        else {displayConnectedMenu();}
-
-        
-        string choice; // Stores the menu selection as text.
-
-        // Stop when terminal input ends instead of repeatedly prompting.
-        if (!getline(cin, choice)) {
-            cout << "\nInput ended. Closing client.\n";
-            break;
-            }
-
-        bool validChoice = false; // Assume the selection is invalid initially.
         if (authenticated) {
-            // The logged-in menu permits choices 1 through 6.
-            validChoice = choice == "1" || choice == "2" ||
-                          choice == "3" || choice == "4" ||
-                          choice == "5" || choice == "6";
+            displayAuthenticatedMenu();
         }
         else {
-        // Before login, only Login and Quit are available.
-        validChoice = choice == "1" || choice == "2";
+            displayConnectedMenu();
         }
 
-        // Reject invalid input locally without sending a network request.
-        if (!validChoice) {
-        cout << "Invalid menu selection. Please try again.\n";
-        continue;
-    }
+        string choice;
+        getline(cin, choice);  //Read the complete menu selection.
 
-        //
+        while(choice != "1" && choice != "2" && choice != "3" && choice != "4" && choice != "5" && choice != "6"){
+            cout << "Invalid Input please enter valid choice: ";
+            getline(cin, choice);
+        }
         //LOGIN
         if (!authenticated && choice == "1") {
             string username;
             string password;
 
-           if (!readInput("Username: ", username)) {
-                break; // Exit the main loop if input ends.
-            }
+            cout << "Username: ";
+            getline(cin, username);
 
-            if (!readInput("Password: ", password)) {
-                break;
-            }
+            cout << "Password: ";
+            getline(cin, password);
 
             if (!validField(username) ||!validField(password)) {
                 cout << "410 Wrong username or password\n";
@@ -328,13 +292,11 @@ int main(int argc, char* argv[]) {
             string questionText;     //Stores user input for question number.
             int questionNumber = 0;  //set to 0 to indicate no valid question number yet.
 
-           if (!readInput("Question number: ", questionText)) {
-            break;
-        }
+            cout << "Question number: ";
+            getline(cin, questionText);
 
             if (!parsePositiveInteger(questionText,questionNumber)) {
                 cout << "404 question not Found.\n";
-                cout << "Please enter a positive question number.\n";
                 continue;
             }
 
@@ -351,17 +313,14 @@ int main(int argc, char* argv[]) {
             string title;   //question title
             string body;    //question body
 
-            if (!readInput("Title: ", title)) {
-                break;
-            }
+            cout << "Title: ";
+            getline(cin, title);
 
-            if (!readInput("Question: ", body)) {
-                break;
-            }
+            cout << "Question: ";
+            getline(cin, body);
 
             if (!validField(title) ||!validField(body)) {
                 cout << "300 message format error.\n";
-                cout << "Invalid question format.\n";
                 continue;
             }
             //whats sent to the server for POST_QUESTION request
@@ -379,18 +338,16 @@ int main(int argc, char* argv[]) {
             string answer;
             int questionNumber = 0;
 
-            if (!readInput("Question number: ", questionText)) {
-                break;
-            }
+            cout << "Question number: ";
+            getline(cin, questionText);
 
             if (!parsePositiveInteger(questionText, questionNumber)) {
                 cout << "Invalid question number.\n";
                 continue;
             }
 
-            if (!readInput("Answer: ", answer)) {
-                break;
-            }
+            cout << "Answer: ";
+            getline(cin, answer);
 
             if (!validField(answer)) {
                 cout << "Invalid answer format.\n";
@@ -433,7 +390,6 @@ int main(int argc, char* argv[]) {
         //Invalid menu input
         else {
             cout << "300 message format error\n";
-            cout << "Invalid menu selection. Please try again.\n";
         }
     }
 
