@@ -17,6 +17,7 @@
 #include <vector>
 //#include"utilities.h"
 #include"serverDataStruct.h"
+#include <mutex> // Provides mutex and lock_guard
 
 using namespace std;
 
@@ -420,10 +421,10 @@ void handleClient(int clientSocket,const string& clientId,DiscussionBoard& board
                 close(clientSocket);
                 return;
             }
-
+            
             logger.log(response.successful? "INFO": "WARN",clientId +" command=" +
                 command +" outcome=" +(response.successful? "success": "error") );
-
+                         
             if (response.closeConnection) {
                 gracefulDisconnect = true;
                 break;

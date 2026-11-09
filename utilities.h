@@ -3,13 +3,11 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <optional>
 #include <string>
 #include <sys/socket.h>
 #include <sys/types.h>
-#include <unistd.h>
+#include <mutex> // Provides mutex and lock_guard.
+
 
 using namespace std;
 

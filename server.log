@@ -316,3 +316,30 @@
 2026-11-08T19:28:49 INFO client-9 command=POST_ANSWER outcome=success
 2026-11-08T19:28:59 INFO client-9 request=VIEW_ANSWER
 2026-11-08T19:28:59 INFO client-9 command=VIEW_ANSWER outcome=success
+2026-11-08T20:17:12 WARN client-9 disconnected unexpectedly
+2026-11-08T20:17:57 INFO client-10 connected from 127.0.0.1
+2026-11-08T20:18:20 INFO client-10 request=LOGIN
+2026-11-08T20:18:20 WARN client-10 command=LOGIN outcome=error
+2026-11-08T20:18:42 INFO client-10 request=LOGIN
+2026-11-08T20:18:42 INFO client-10 command=LOGIN outcome=success
+2026-11-08T20:19:00 INFO client-10 request=POST_QUESTION
+2026-11-08T20:19:00 INFO client-10 command=POST_QUESTION outcome=success
+2026-11-08T20:19:02 WARN client-10 disconnected unexpectedly
+2026-11-08T20:22:18 INFO client-11 connected from 127.0.0.1
+2026-11-08T20:22:24 INFO client-11 request=LOGIN
+2026-11-08T20:22:24 WARN client-11 command=LOGIN outcome=error
+2026-11-08T20:22:47 INFO client-11 request=LOGIN
+2026-11-08T20:22:47 WARN client-11 command=LOGIN outcome=error
+2026-11-08T20:23:02 INFO client-11 request=LOGIN
+2026-11-08T20:23:02 INFO client-11 command=LOGIN outcome=success
+2026-11-08T20:23:18 INFO client-11 request=VIEW_QUESTIONS
+2026-11-08T20:23:18 INFO client-11 command=VIEW_QUESTIONS outcome=success
+2026-11-08T20:23:49 WARN client-11 disconnected unexpectedly
+2026-11-08T20:27:22 INFO Server startup
+2026-11-08T20:27:22 INFO Server listening on 0.0.0.0:6543
+2026-11-08T20:27:39 INFO client-1 connected from 127.0.0.1
+2026-11-08T20:27:46 INFO client-1 request=LOGIN
+2026-11-08T20:27:46 INFO client-1 command=LOGIN outcome=success
+2026-11-08T20:27:49 INFO client-1 request=VIEW_QUESTIONS
+2026-11-08T20:27:49 INFO client-1 command=VIEW_QUESTIONS outcome=success
+2026-11-08T20:27:54 WARN client-1 disconnected unexpectedly
