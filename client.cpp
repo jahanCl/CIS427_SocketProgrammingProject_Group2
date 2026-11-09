@@ -150,7 +150,17 @@ bool receiveResponse(int socketNumber,string& receiveBuffer,bool mayBeMultiline)
         return false;
     }
 
-    cout << *firstLine << '\n';   //Display line status, error, or COUNT. 
+    // Display a friendly message instead of the raw successful response.
+    if (firstLine->rfind("200 OK|answerId=", 0) == 0) {
+        cout << "Answer posted successfully.\n";
+        }
+    else if (firstLine->rfind("200 OK|questionNumber=", 0) == 0) {
+        cout << "Question posted successfully.\n";
+    }
+    else if (*firstLine != "200 OK") {
+        cout << *firstLine << '\n'; // Continue displaying error responses.
+    }
+
     // If the response is not a successful multiline response, return.
     if (!mayBeMultiline ||firstLine->rfind("200 OK", 0) != 0) {
         return true;                  
@@ -229,12 +239,28 @@ int main(int argc, char* argv[]) {
         }
 
         string choice;
-        getline(cin, choice);  //Read the complete menu selection.
-
-        while(choice != "1" && choice != "2" && choice != "3" && choice != "4" && choice != "5" && choice != "6"){
-            cout << "Invalid Input please enter valid choice: ";
-            getline(cin, choice);
+        //To not loop forever if the user ends input (Ctrl+D), check if getline() succeeded.
+        if (!getline(cin, choice)) {
+            cout << "\nInput ended. Closing client.\n";
+            break;
         }
+
+        bool validChoice = false; // Assume the choice is invalid.
+        if (authenticated) {    //Logged in users have more menu options.
+        validChoice =
+            choice == "1" || choice == "2" ||
+            choice == "3" || choice == "4" ||
+            choice == "5" || choice == "6";
+        }
+        else {     //Not logged in users have only two menu options.
+            validChoice = choice == "1" || choice == "2";
+        }       
+
+        if (!validChoice) {
+            cout << "Invalid menu selection. Please try again.\n";
+            continue;
+        }
+        
         //LOGIN
         if (!authenticated && choice == "1") {
             string username;

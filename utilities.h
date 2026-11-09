@@ -23,7 +23,7 @@ using namespace std;
 //Returns true if every character in a string is an ASCII character.
 inline bool isASCii(const string& text){     
     for (unsigned char character : text) {   //loop through evrey byte in string 
-        if (character > 127 ) {   //if the byte is not in the ASCII range
+        if (character > 127 || character < 0) {   //if the byte is not in the ASCII range
                 return false;   //return false
         }
     }
