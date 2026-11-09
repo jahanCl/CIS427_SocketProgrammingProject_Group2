@@ -1,3 +1,7 @@
+#ifndef DISCUSSU_SERVER_DATA_STRUCT_H
+#define DISCUSSU_SERVER_DATA_STRUCT_H
+
+
 #include <arpa/inet.h>
 #include <ctime>
 #include <fstream>
@@ -165,7 +169,7 @@ public:
     }
 };
 
-
+#endif
 
 
 

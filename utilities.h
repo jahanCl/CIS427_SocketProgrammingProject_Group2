@@ -1,5 +1,8 @@
 //Shared functions of server and client
 
+#ifndef DISCUSSU_UTILITIES_H
+#define DISCUSSU_UTILITIES_H
+
 #include <cerrno>
 #include <cstring>
 #include <iostream>
@@ -18,9 +21,9 @@ using namespace std;
 // Input Validators
 // ============================================================
 //Returns true if every character in a string is an ASCII character.
-bool isASCii(const string& text){     
+inline bool isASCii(const string& text){     
     for (unsigned char character : text) {   //loop through evrey byte in string 
-        if (character > 127 || character < 0) {   //if the byte is not in the ASCII range
+        if (character > 127 ) {   //if the byte is not in the ASCII range
                 return false;   //return false
         }
     }
@@ -28,14 +31,14 @@ bool isASCii(const string& text){
 }
 
 //Validates one user-provided field such as a username, title, or answer.
-bool validField(const string& text) {
+inline bool validField(const string& text) {
     return !text.empty() &&                  //Required fields cannot be empty.
            isASCii(text) &&                  //Only ASCII text is accepted.
            text.find('|') == string::npos && // | is only for seperating fields.
            text.find('\n') == string::npos ; //Newline not inside a protocol message, only at end.
 }
 
-bool parsePositiveInteger(const string& text,int& output) {
+inline bool parsePositiveInteger(const string& text,int& output) {
     try {
         size_t used = 0;                // Records how much of the string was parsed.
         int value = stoi(text, &used);  // Attempts to convert the string to an integer.
@@ -54,7 +57,7 @@ bool parsePositiveInteger(const string& text,int& output) {
 }
 
 //Sends every byte in a string.
-bool sendAll( int socketNumber, const string& data) {
+inline bool sendAll( int socketNumber, const string& data) {
     size_t totalSent = 0;   //Tracks the number of bytes already sent.
 
     while (totalSent < data.size()) { // Continue until all bytes are sent.
@@ -79,3 +82,5 @@ bool sendAll( int socketNumber, const string& data) {
     }
     return true;    //Every byte was sent successfully.
 }
+
+#endif

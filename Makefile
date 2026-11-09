@@ -1,19 +1,21 @@
-CFLAGS= -g
-LDFLAGS= #-lsocket -lnsl
-CC=g++
+CXX := g++
+CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -g -pthread
 
-all: client server 
+.PHONY: all clean
 
-# To make an executable
-client: client.o 
-	$(CC) $(LDFLAGS) -o client client.o
- 
+all: client server
+
+client: client.o
+	$(CXX) $(CXXFLAGS) -o client client.o
+
 server: server.o
-	$(CC) $(LDFLAGS) -o server server.o
+	$(CXX) $(CXXFLAGS) -o server server.o
 
-# To make an object from source
-.c.o:
-	$(CC) $(CFLAGS) -c $*.c
+client.o: client.cpp utilities.h
+	$(CXX) $(CXXFLAGS) -c client.cpp -o client.o
 
-# clean out the dross
-clean:	-rm client server *.o core
+server.o: server.cpp utilities.h serverDataStruct.h
+	$(CXX) $(CXXFLAGS) -c server.cpp -o server.o
+
+clean:
+	rm -f client server client.o server.o
