@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <vector>
 #include"utilities.h"
+#include <mutex>
 
 using namespace std;
 
@@ -72,12 +73,13 @@ private:
     map<int, Question> questionsList;       //Stores list of questions, search by question num
     int nextQuestionNumber = 1;             //Stores the next question number to be assigned
     int nextAnswerId = 1;                   //Stores the next answer ID to be assigned
-
+    
 public:
     DiscussionBoard() {
         //Predefined user accounts for testing purposes.
         accountsList["Jahan"] = UserAccount{1,"Jahan","password123"};
         accountsList["Kieran"] = UserAccount{ 2,"Kieran", "Cookies21"};
+        accountsList["Megan"] = UserAccount{ 3,"Megan", "Megan123"};
 
         //Predefined questions for testing purposes
 
@@ -144,6 +146,7 @@ public:
 class ServerLogger {
 private:
     ofstream file; //Used to Write entries to the log file.
+    mutex logMutex; //Protects the shared log-file stream.
 
     // Creates the current local time in YYYY-MM-DDTHH:MM:SS format.
     string timestamp() {
@@ -164,10 +167,41 @@ public:
     }
     // Writes one complete log entry.
     void log(const string& level,const string& message) {
+        lock_guard<mutex> lock(logMutex);   //Prevent another thread from writing during this entry.
         file << timestamp()<< ' '<< level << ' '<< message<< '\n';
         file.flush();  //Force the entry to be written immediately instead of remaining in buffer
     }
 };
+
+
+// ============================================================
+// Structured Response Helpers
+// ============================================================
+//Creates a successful response for one protocol lines.
+Response makeSuccess(const string& line, int resourceId = 0) {
+    Response response;   //crear responce object 
+    response.lines.push_back(line);  //Add the protocol line to the response's list of outgoing lines.
+
+    response.successful = true;  //The application operation was successful
+    response.resourceId = resourceId; //Store the related question or answer ID. 
+    return response;        //Return the completed response to the command handler.
+} 
+//Creates a successful response containing multiple protocol lines.
+Response makeSuccess(const vector<string>& lines) {
+    Response response;
+    response.lines = lines;  //Copy all protocol lines into the response.
+    response.successful = true;
+    return response;
+}
+
+//Creates an unsuccessful single line response.
+Response makeError(const string& line) {
+    Response response;
+    response.lines.push_back(line);  //Adds the error protocol line that will be sent to the client.
+    return response;
+}
+
+
 
 #endif
 
