@@ -102,6 +102,11 @@ int main(int argc, char* argv[]) {
             //Format of LOGIN request
             string request ="LOGIN|username=" + username +"|password=" + password;
 
+            if (request.size() + 1 > MAX_LINE) {
+                cout << "Question is too long. Please enter shorter text.\n";
+                continue; // Return to the main menu.
+            }
+            
             if (!sendLine(socketNumber, request)) {
                 break;
             }
@@ -174,6 +179,12 @@ int main(int argc, char* argv[]) {
             }
             //whats sent to the server for POST_QUESTION request
             string request ="POST_QUESTION|title=" + title +"|body=" + body;
+            // Reject oversized input locally without closing the connection.
+            // Add 1 to include the newline that sendLine() adds.
+            if (request.size() + 1 > MAX_LINE) {
+                cout << "Question is too long. Please enter shorter text.\n";
+                continue; // Return to the main menu.
+            }
 
             if (!sendLine(socketNumber, request) ||
                 !receiveResponse( socketNumber, receiveBuffer,false)) {
@@ -204,6 +215,10 @@ int main(int argc, char* argv[]) {
             }
 
             string request = "POST_ANSWER|questionNumber=" +to_string(questionNumber) +"|answer=" + answer;
+            if (request.size() + 1 > MAX_LINE) {
+                cout << "Question is too long. Please enter shorter text.\n";
+                continue; // Return to the main menu.
+            }
 
             if (!sendLine(socketNumber, request) ||
                 !receiveResponse(socketNumber, receiveBuffer,false)) {
