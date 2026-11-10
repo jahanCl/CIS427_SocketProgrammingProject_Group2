@@ -10,11 +10,13 @@ Jahan Clare
 *Required Software*: 
 -Linux or a compatible POSIX environment 
 -A C++17-compatible compiler, such as g++
--GNU MakePython 3 if running Python test scripts included with the submission
+-GNU Make
+-Python 3 for running tests
 
 Check the build tools:
 g++ --version
 make --version
+python3 --version
 
 *Build Instructions*
 1.Open a terminal in the project’s root directory.
@@ -110,12 +112,13 @@ Disconnection and Shutdown
 -Restart the server on the same port and verify that a new client can connect.
 
 Framing and Load Testing
--Build the server, then run the included protocol tests from the project directory:
-make
-tests/protocol_tests.py
--The script starts its own local server and checks fragmented requests, multiple
-requests sent together, and concurrent question posts. It uses only Python's
-standard library and does not modify the project's server log.
+-Automated Protocol, Framing, Concurrency, and Load TestsBuild the application: 
+------makeStart the server in one terminal:./server 6543
+-In a second terminal, run the included Python test script:python3 tests/protocol_tests.py localhost 6543 --clients 10 --requests 20
+-Enter a configured classroom test username and password when prompted.
+-The script checks session states, invalid requests, recovery, fragmented and batched requests, shared-board operations, concurrent answers, failure isolation, repeated connections, and concurrent load performance.
+-The script uses only Python’s standard library. It connects to the existing server and creates test questions and answers. The server records these operations in its normal log.
+-To save the results:python3 -u tests/protocol_tests.py localhost 6543 --clients 10 --requests 20 2>&1 | tee tests/phase3-results.txt.
 
 Server Logging
 -The server writes timestamped events to: server.log
