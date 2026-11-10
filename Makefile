@@ -11,10 +11,10 @@ client: client.o
 server: server.o
 	$(CXX) $(CXXFLAGS) -o server server.o
 
-client.o: client.cpp utilities.h
+client.o: client.cpp utilities.h clientConnection.h clientInterface.h
 	$(CXX) $(CXXFLAGS) -c client.cpp -o client.o
 
-server.o: server.cpp utilities.h serverDataStruct.h
+server.o: server.cpp utilities.h serverDataStruct.h serverLogic.h
 	$(CXX) $(CXXFLAGS) -c server.cpp -o server.o
 
 clean:

@@ -1,0 +1,74 @@
+Configured test username: 
+TEST: Session-state validation
+  Before login: 401 You are not currently logged in, login first.
+  Valid login succeeded after the rejected request
+  Second login: 409 command not allowed in current session state
+  After logout: 401 You are not currently logged in, login first.
+  Login again and graceful QUIT succeeded
+PASS: Session-state validation
+
+TEST: Invalid requests and recovery
+  Wrong password: 410 Wrong username or password.
+  Empty request: 300 message format error; recovery succeeded
+  Unknown command: 400 unknown command; recovery succeeded
+  Missing body: 300 message format error; recovery succeeded
+  Empty title: 300 message format error; recovery succeeded
+  Duplicate field: 300 message format error; recovery succeeded
+  Unexpected field: 300 message format error; recovery succeeded
+  Nonnumeric question number: 300 message format error; recovery succeeded
+  Zero question number: 300 message format error; recovery succeeded
+  Missing question: 404 question not found
+PASS: Invalid requests and recovery
+
+TEST: Fragmented request
+  Sent fragment 1: VIEW_QUES (without newline)
+  No response before the newline
+  Sent fragment 2: TIONS\n
+  Received one complete response ending with END
+PASS: Fragmented request
+
+TEST: Batched requests
+  Sent two VIEW_QUESTIONS requests together
+  Received two complete responses ending with END
+PASS: Batched requests
+
+TEST: Three connected clients perform different operations
+  Three clients are connected and authenticated
+  Client 1 created question 23
+  Client 2 retrieved Client 1's question
+  Client 3 posted answer 6
+  Client 1 retrieved Client 3's answer
+PASS: Three connected clients perform different operations
+
+TEST: Concurrent answers retained with unique IDs
+  Stored 3 answers with unique IDs: [8, 9, 7]
+PASS: Concurrent answers retained with unique IDs
+
+TEST: Invalid request and disconnect isolation
+  Invalid request rejected; all connections remain usable
+  One client closed without QUIT
+  Remaining clients posted and retrieved both questions
+PASS: Invalid request and disconnect isolation
+
+TEST: Repeated connections and graceful QUIT
+  Completed 15 connect/login/view/QUIT cycles
+PASS: Repeated connections and graceful QUIT
+
+TEST: Concurrent load test
+
+LOAD TEST RESULTS
+Clients: 10
+Planned posting requests: 200
+Successful posting requests: 200
+Failed/not completed posting requests: 0
+Total duration including connection/cleanup: 0.098 seconds
+Average completed-request response time: 2.355 ms
+Maximum completed-request response time: 8.305 ms
+Verified that all 200 created questions were retained.
+Verification requests are additional to the timed posting workload.
+PASS: Concurrent load test
+
+FINAL TEST SUMMARY
+Total test groups: 9
+Passed: 9
+Failed: 0

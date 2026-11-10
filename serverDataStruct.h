@@ -174,36 +174,7 @@ public:
 };
 
 
-// ============================================================
-// Structured Response Helpers
-// ============================================================
-//Creates a successful response for one protocol lines.
-Response makeSuccess(const string& line, int resourceId = 0) {
-    Response response;   //crear responce object 
-    response.lines.push_back(line);  //Add the protocol line to the response's list of outgoing lines.
-
-    response.successful = true;  //The application operation was successful
-    response.resourceId = resourceId; //Store the related question or answer ID. 
-    return response;        //Return the completed response to the command handler.
-} 
-//Creates a successful response containing multiple protocol lines.
-Response makeSuccess(const vector<string>& lines) {
-    Response response;
-    response.lines = lines;  //Copy all protocol lines into the response.
-    response.successful = true;
-    return response;
-}
-
-//Creates an unsuccessful single line response.
-Response makeError(const string& line) {
-    Response response;
-    response.lines.push_back(line);  //Adds the error protocol line that will be sent to the client.
-    return response;
-}
-
-
 
 #endif
-
 
 
